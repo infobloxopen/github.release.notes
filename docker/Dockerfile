@@ -1,7 +1,7 @@
 # build the server binary
 FROM golang:1.16.3 AS builder
 LABEL stage=server-intermediate
-WORKDIR /go/src/github.com/infobloxopen/atlas-cli/github.release.notes
+WORKDIR /go/src/github.com/infobloxopen/github.release.notes
 
 COPY . .
 RUN go build -mod=vendor -o bin/server ./cmd/server
@@ -14,7 +14,7 @@ WORKDIR /bin
 RUN mkdir -p /lib64 && \
     ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
 
-COPY --from=builder /go/src/github.com/infobloxopen/atlas-cli/github.release.notes/bin/server .
+COPY --from=builder /go/src/github.com/infobloxopen/github.release.notes/bin/server .
 
 
 ENTRYPOINT ["server"]

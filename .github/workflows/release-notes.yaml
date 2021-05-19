@@ -2,25 +2,49 @@ name: release-notes
 on:
   pull_request:
   push:
-    tags:        
-      - v1             # Push events to v1 tag
-      - v1.*           # Push events to v1.0, v1.1, and v1.9 tags
-  registry_package:
-    types: [published, create]
+    tags: ['*']
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  USER: 'user'
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  job-bash:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    container: bash:3
     steps:
-      # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
           echo hello-world,
-          echo good bye.
+          echo "::set-output name=hi::hello-world"
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Create artifact file
+        run: |
+          mkdir -p path/notes
+          echo "[Full Changelog](https://github.com/Infobloxopen/github.release.notes/compare/v0.0.8...v0.0.91)" > path/notes/commit.txt
+      - name: Create tag
+        id: create_tag
+        run: |
+          echo "::set-output name=tag::${{ env.RELEASE_VERSION }}"
+      - name: ls and pwd
+        run: |
+          ls -la
+          pwd
+          echo "${{ github.event.repository.name }}"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.create_tag.outputs.tag }}
+          release_name: ${{ steps.create_tag.outputs.tag }}
+          body: ${{ github.event.head_commit.message }}
+          body_path: path/notes/commit.txt
+          prerelease: false
+        
