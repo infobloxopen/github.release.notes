@@ -41,12 +41,13 @@ func NewLogger() *logrus.Logger {
 // ServeExternal builds and runs the server that listens on ServerAddress and GatewayAddress
 func ServeExternal(logger *logrus.Logger) error {
 
-	ghClient := gh.NewGithubClient(viper.GetString("github.token"))
+	ghClient := gh.NewGithubClient(viper.GetString("github.token"), logger)
 
-	err := ghClient.PrepeareReleaseNotes(viper.GetString("github.org"))
+	rndList, err := ghClient.GetReleaseNotesData(viper.GetString("github.org"))
 	if err != nil {
 		logger.Fatalln(err)
 	}
+	ghClient.PublishReleaseNotes(rndList)
 
 	return nil
 }
