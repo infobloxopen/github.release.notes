@@ -10,12 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set env        
+        id: vars        
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}      
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@fe3d842f17cfde577b57998e2f5364e015fe6735
+        uses: infobloxopen/github.release.notes@cb9419dd6598de67d310b0fd08bae26822d6a972
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # github-tag: ${{GITHUB_REF#refs/*/}}
+          github-tag: ${{ steps.vars.outputs.tag }}
           github-user: ${{ github.actor }}
           github-repo: ${{ github.repository }}
