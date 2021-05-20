@@ -2,11 +2,9 @@ name: release-notes
 on:
   push:
     tags: ['*']
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 env:
-  USER: 'user'
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   release-notes:
     runs-on: ubuntu-latest
@@ -16,39 +14,29 @@ jobs:
         uses: infobloxopen/github.release.notes@f28f77be2b983f6fe6fd6c538f99e8a721d6994f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ORG: info2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}     
-          github-user: QWE
-          github-org: info
-  create-release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Create artifact file
-        run: |
-          mkdir -p path/notes
-          echo "[Full Changelog](https://github.com/Infobloxopen/github.release.notes/compare/v0.0.8...v0.0.91)" > path/notes/commit.txt
-      - name: Create tag
-        id: create_tag
-        run: |
-          echo "::set-output name=tag::${{ env.RELEASE_VERSION }}"
-      - name: ls and pwd
-        run: |
-          ls -la
-          pwd
-          echo "${{ github.event.repository.name }}"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.create_tag.outputs.tag }}
-          release_name: ${{ steps.create_tag.outputs.tag }}
-          body: ${{ github.event.head_commit.message }}
-          body_path: path/notes/commit.txt
-          prerelease: false
+  # create-release:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Set env
+  #       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+  #     - name: Create artifact file
+  #       run: |
+  #         mkdir -p path/notes
+  #         echo "[Full Changelog](https://github.com/Infobloxopen/github.release.notes/compare/v0.0.8...v0.0.91)" > path/notes/commit.txt
+  #     - name: Create tag
+  #       id: create_tag
+  #       run: |
+  #         echo "::set-output name=tag::${{ env.RELEASE_VERSION }}"
+  #     - name: Create Release
+  #       id: create_release
+  #       uses: actions/create-release@v1
+  #       with:
+  #         tag_name: ${{ steps.create_tag.outputs.tag }}
+  #         release_name: ${{ steps.create_tag.outputs.tag }}
+  #         body: ${{ github.event.head_commit.message }}
+  #         body_path: path/notes/commit.txt
+  #         prerelease: false
         

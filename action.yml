@@ -3,23 +3,31 @@ name: 'Release-Notes'
 description: 'The action for publishing release notes'
 inputs:
   github-token:  
-    description: 'A GitHub personal access token used to commit to a branch on your behalf.'
+    description: 'A gitHub personal access token used to commit'
     required: true
-  branch:  
-    description: 'The branch'
+  repo:  
+    description: 'The repository name'
     required: false
     default: 'main'
-  github-org:  
-    description: 'Github Organization Name'
+  branch:  
+    description: 'The branch name'
     required: false
-  github-user:  
-    description: 'Github User Name'
+    default: 'main'
+  github-org:
+    description: 'Github organization name'
+    required: false
+  github-user:
+    description: 'Github user name'
+    required: false
+  github-tag:
+    description: 'Github repository tag'
     required: false
 runs:
   using: 'docker'
   image: 'docker://dlahuta/github.release.notes:26e5cdd-unsupported'
   args:
-    - ${{ inputs.github-token }}
-    - ${{ inputs.branch }}
-    - ${{ inputs.github-org }}
+    - --github.token=${{ inputs.github-token }}
+    - --github.org=${{ inputs.github-org }}
+    - --github.repo=${{ inputs.github-repo }}
     - --github.user=${{ inputs.github-user }}
+    - --github.tag=${{ inputs.github-tag }}

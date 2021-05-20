@@ -17,6 +17,7 @@ const (
 	defaulGithubOrg   = "infobloxopen"
 	defaulGithubRepo  = "github.release.notes"
 	defaulGithubUser  = "user"
+	defaulGithubGit   = ""
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 
 	_ = pflag.String("github.token", defaulGithubToken, "github token")
 	_ = pflag.String("github.org", defaulGithubOrg, "github organization")
-	_ = pflag.String("github.repo", defaulGithubRepo, "github repository")
-	_ = pflag.String("github.user", defaulGithubUser, "github user")
+	_ = pflag.String("github.repo", defaulGithubRepo, "github repository name")
+	_ = pflag.String("github.user", defaulGithubUser, "github user name")
+	_ = pflag.String("github.tag", defaulGithubUser, "github repository tag")
 )
