@@ -15,28 +15,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}     
-  # create-release:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Set env
-  #       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-  #     - name: Create artifact file
-  #       run: |
-  #         mkdir -p path/notes
-  #         echo "[Full Changelog](https://github.com/Infobloxopen/github.release.notes/compare/v0.0.8...v0.0.91)" > path/notes/commit.txt
-  #     - name: Create tag
-  #       id: create_tag
-  #       run: |
-  #         echo "::set-output name=tag::${{ env.RELEASE_VERSION }}"
-  #     - name: Create Release
-  #       id: create_release
-  #       uses: actions/create-release@v1
-  #       with:
-  #         tag_name: ${{ steps.create_tag.outputs.tag }}
-  #         release_name: ${{ steps.create_tag.outputs.tag }}
-  #         body: ${{ github.event.head_commit.message }}
-  #         body_path: path/notes/commit.txt
-  #         prerelease: false
-        
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${GITHUB_REF#refs/*/}
+          github-user: ${{ github.actor }}
+          github-repo: $GITHUB_REPOSITORY
