@@ -15,10 +15,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: npm install
-      - name: Deploy storybook to Github Pages
-        uses:  infobloxopen/github.release.notes@v14.0
+      - name: Run release.notes image
+        uses:  infobloxopen/github.release.notes@d0da111725a5b430fb2605ebd079a1afbdea91f2
         with:
-          github-token: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}     
+          github-token: ${{ secrets.GITHUB_TOKEN }}     
   create-release:
     runs-on: ubuntu-latest
     steps:
