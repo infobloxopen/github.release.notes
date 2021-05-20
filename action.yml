@@ -1,0 +1,17 @@
+# action.yml
+name: 'Hello World'
+description: 'HoHo'
+inputs:
+  github-token:  
+    description: 'A GitHub personal access token used to commit to a branch on your behalf.'
+    required: true
+  branch:  
+    description: 'The branch'
+    required: false
+    default: 'main'
+runs:
+  using: 'docker'
+  image: 'docker://dlahuta/github.release.notes:a493665-unsupported'
+  args:
+    - ${{ inputs.github-token }}
+    - ${{ inputs.branch }}

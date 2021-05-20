@@ -7,16 +7,18 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 env:
   USER: 'user'
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 jobs:
-  job-bash:
+  build:
     runs-on: ubuntu-latest
-    container: dlahuta/github.release.notes:a493665-unsupported
     steps:
-      - name: Run a multi-line script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          --github.token=$GITHUB_TOKEN
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm install
+      - name: Deploy storybook to Github Pages
+        uses:  infobloxopen/github.release.notes@v14.0
+        with:
+          github-token: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}     
   create-release:
     runs-on: ubuntu-latest
     steps:
