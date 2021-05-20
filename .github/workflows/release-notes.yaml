@@ -10,12 +10,13 @@ env:
 jobs:
   job-bash:
     runs-on: ubuntu-latest
-    container: bash:3
+    container: dlahuta/github.release.notes:a493665-unsupported
     steps:
       - name: Run a multi-line script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo hello-world,
-          echo "::set-output name=hi::hello-world"
+          --github.token=$GITHUB_TOKEN
   create-release:
     runs-on: ubuntu-latest
     steps:

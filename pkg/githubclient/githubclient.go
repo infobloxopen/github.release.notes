@@ -37,7 +37,7 @@ func NewGithubClient(token string) GithubClientClient {
 // GetReleaseNotesData return release notes data collected
 func (gc *githubClient) GetReleaseNotesData(repo string) ([]ReleaseNotesData, error) {
 	gc.RepoURL = repo
-	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), "infobloxopen", nil)
+	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), repo, nil)
 	if err != nil {
 		log.Error(err)
 	}
