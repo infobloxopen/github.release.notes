@@ -34,7 +34,7 @@ func NewGithubClient(token string) GithubClientClient {
 	}
 }
 
-// GetFeatureFlagValue return feature flag value
+// GetReleaseNotesData return release notes data collected
 func (gc *githubClient) GetReleaseNotesData(repo string) ([]ReleaseNotesData, error) {
 	gc.RepoURL = repo
 	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), "infobloxopen", nil)
@@ -46,7 +46,7 @@ func (gc *githubClient) GetReleaseNotesData(repo string) ([]ReleaseNotesData, er
 	return rnd, nil
 }
 
-// GetFeatureFlagValue return feature flag value
+// PublishReleaseNotes publishes release notes to GitHub
 func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 	for _, v := range rndList {
 		title, body := v.PrepareReleaseNotesMessage()
