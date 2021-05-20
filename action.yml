@@ -17,7 +17,7 @@ inputs:
     required: false
 runs:
   using: 'docker'
-  image: 'docker://dlahuta/github.release.notes:a493665-unsupported'
+  image: 'docker://dlahuta/github.release.notes:35a3728-unsupported'
   args:
     - ${{ inputs.github-token }}
     - ${{ inputs.branch }}
