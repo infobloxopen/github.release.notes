@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@6292c4daf880e4117392f643c34a8e8238d3e613
+        uses: infobloxopen/github.release.notes@e6c14e8074a14526d8ca59c1566d4c1e1acf0a8a
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}     
           github-user: QWE
