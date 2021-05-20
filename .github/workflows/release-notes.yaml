@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@f28f77be2b983f6fe6fd6c538f99e8a721d6994f
+        uses: infobloxopen/github.release.notes@7b259382ed223d3db21cb18d7d3e2089c1500a81
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
