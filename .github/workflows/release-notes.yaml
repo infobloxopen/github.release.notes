@@ -7,16 +7,16 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 env:
   USER: 'user'
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GITHUB_ORG: info2
-  GITHUB_USER: QWE2 
 jobs:
   release-notes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@e005800675d9d7a2afb69764ba71e1719bc9ee49
+        uses: infobloxopen/github.release.notes@bfc6d0c2c14dea82b50184a72cbc2fb71f7f3601
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ORG: info2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}     
           github-user: QWE
