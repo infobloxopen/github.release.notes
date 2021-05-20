@@ -5,23 +5,23 @@ import (
 
 	"github.com/google/go-github/v35/github"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
 type githubClient struct {
 	GithubToken string
 	OrgName     string
+	RepoName    string
 	client      *github.Client
 }
 
 type GithubClientClient interface {
-	GetReleaseNotesData(org string) ([]ReleaseNotesData, error)
+	GetReleaseNotesData() ([]ReleaseNotesData, error)
 	PublishReleaseNotes(rndList []ReleaseNotesData)
 }
 
 // New creates a client wrapper
-func NewGithubClient(token string) GithubClientClient {
+func NewGithubClient(token, org, repo string) GithubClientClient {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -30,18 +30,22 @@ func NewGithubClient(token string) GithubClientClient {
 	client := github.NewClient(tc)
 
 	return &githubClient{
-		client: client,
+		OrgName:  org,
+		RepoName: repo,
+		client:   client,
 	}
 }
 
 // GetReleaseNotesData return release notes data collected
-func (gc *githubClient) GetReleaseNotesData(org string) ([]ReleaseNotesData, error) {
-	gc.OrgName = org
-	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), org, nil)
+func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
+	tagsList, _, err := gc.client.Repositories.ListTags(context.Background(), gc.OrgName, gc.RepoName, &github.ListOptions{Page: 0, PerPage: 1000})
+	//repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), org, nil)
 	if err != nil {
 		log.Error(err)
 	}
-	log.Debugf("repos: %v", repos)
+	for _, tag := range tagsList {
+		log.Debugf("tag: %v", *tag.Name)
+	}
 	rnd := make([]ReleaseNotesData, 5)
 	return rnd, nil
 }
@@ -57,10 +61,11 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			Name:            &title,
 			Body:            &body,
 		}
-		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), viper.GetString("github.org"), viper.GetString("github.repo"), release)
-		if err != nil {
-			log.Errorf("Error while publishing release notes: %v", err)
-			continue
-		}
+		log.Debugf("release: %v", release)
+		// _, _, err := gc.client.Repositories.CreateRelease(context.Background(), viper.GetString("github.org"), viper.GetString("github.repo"), release)
+		// if err != nil {
+		// 	log.Errorf("Error while publishing release notes: %v", err)
+		// 	continue
+		// }
 	}
 }
