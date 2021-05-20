@@ -9,17 +9,17 @@ inputs:
     description: 'The branch'
     required: false
     default: 'main'
-  org:  
+  github-org:  
     description: 'Github Organization Name'
     required: false
-  user:  
+  github-user:  
     description: 'Github User Name'
     required: false
 runs:
   using: 'docker'
-  image: 'docker://dlahuta/github.release.notes:35a3728-unsupported'
+  image: 'docker://dlahuta/github.release.notes:f5799fc-unsupported'
   args:
     - ${{ inputs.github-token }}
     - ${{ inputs.branch }}
-    - ${{ inputs.org }}
-    - ${{ inputs.user }}
+    - ${{ inputs.github-org }}
+    - ${{ inputs.github-user }}
