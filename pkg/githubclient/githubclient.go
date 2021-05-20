@@ -11,12 +11,12 @@ import (
 
 type githubClient struct {
 	GithubToken string
-	RepoURL     string
+	OrgName     string
 	client      *github.Client
 }
 
 type GithubClientClient interface {
-	GetReleaseNotesData(repo string) ([]ReleaseNotesData, error)
+	GetReleaseNotesData(org string) ([]ReleaseNotesData, error)
 	PublishReleaseNotes(rndList []ReleaseNotesData)
 }
 
@@ -35,9 +35,9 @@ func NewGithubClient(token string) GithubClientClient {
 }
 
 // GetReleaseNotesData return release notes data collected
-func (gc *githubClient) GetReleaseNotesData(repo string) ([]ReleaseNotesData, error) {
-	gc.RepoURL = repo
-	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), "infobloxopen", nil)
+func (gc *githubClient) GetReleaseNotesData(org string) ([]ReleaseNotesData, error) {
+	gc.OrgName = org
+	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), org, nil)
 	if err != nil {
 		log.Error(err)
 	}

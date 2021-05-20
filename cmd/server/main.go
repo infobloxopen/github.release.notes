@@ -15,6 +15,11 @@ func main() {
 	doneC := make(chan error)
 	logger := NewLogger()
 
+	logrus.Debugf("github.repo: %v", viper.GetString("github.repo"))
+	logrus.Debugf("github.user: %v", viper.GetString("github.user"))
+	logrus.Debugf("github.org: %v", viper.GetString("github.org"))
+	logrus.Debugf("github.tag: %v", viper.GetString("github.tag"))
+
 	go func() { doneC <- ServeExternal() }()
 
 	if err := <-doneC; err != nil {

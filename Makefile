@@ -12,7 +12,7 @@ DOCKER_ENV := -e AWS_REGION=$(AWS_REGION) -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_
 USERNAME                := $(USER)
 GIT_COMMIT              := $(shell git describe --dirty=-unsupported --always --tags || echo pre-commit)
 IMAGE_VERSION           ?= $(GIT_COMMIT)
-IMAGE_REGISTRY          ?= infoblox
+IMAGE_REGISTRY          ?= dlahuta
 
 IMAGE_NAME              ?= github.release.notes
 # configuration for server binary and image
