@@ -5,14 +5,9 @@ inputs:
   github-token:  
     description: 'A gitHub personal access token used to commit'
     required: true
-  repo:  
+  github-repo:  
     description: 'The repository name'
     required: false
-    default: 'main'
-  branch:  
-    description: 'The branch name'
-    required: false
-    default: 'main'
   github-org:
     description: 'Github organization name'
     required: false
@@ -22,9 +17,13 @@ inputs:
   github-tag:
     description: 'Github repository tag'
     required: false
+  branch:
+    description: 'The branch name'
+    required: false
+    default: 'main'
 runs:
   using: 'docker'
-  image: 'docker://dlahuta/github.release.notes:26cd6ef'
+  image: 'docker://dlahuta/github.release.notes:cc95f21'
   args:
     - --github.token=${{ inputs.github-token }}
     - --github.org=${{ inputs.github-org }}
