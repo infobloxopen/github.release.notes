@@ -1,18 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/infobloxopen/atlas-app-toolkit/server"
-
-	"github.com/infobloxopen/atlas-app-toolkit/gorm/resource"
+	gh "github.com/infobloxopen/github.release.notes/pkg/githubclient"
 )
 
 func main() {
@@ -45,26 +41,14 @@ func NewLogger() *logrus.Logger {
 // ServeExternal builds and runs the server that listens on ServerAddress and GatewayAddress
 func ServeExternal(logger *logrus.Logger) error {
 
-	grpcServer, err := NewGRPCServer(logger)
+	ghClient := gh.NewGithubClient("qwe")
+
+	err := ghClient.PrepeareReleaseNotes("infobloxopen")
 	if err != nil {
 		logger.Fatalln(err)
 	}
 
-	s, err := server.NewServer(
-		server.WithGrpcServer(grpcServer),
-	)
-	if err != nil {
-		logger.Fatalln(err)
-	}
-
-	grpcL, err := net.Listen("tcp", fmt.Sprintf("%s:%s", viper.GetString("server.address"), viper.GetString("server.port")))
-	if err != nil {
-		logger.Fatalln(err)
-	}
-
-	logger.Printf("serving gRPC at %s:%s", viper.GetString("server.address"), viper.GetString("server.port"))
-
-	return s.Serve(grpcL, nil)
+	return nil
 }
 
 func init() {
@@ -82,6 +66,6 @@ func init() {
 	} else {
 		log.Printf("Serving from default values, environment variables, and/or flags")
 	}
-	resource.RegisterApplication(viper.GetString("app.id"))
-	resource.SetPlural()
+	//	resource.RegisterApplication(viper.GetString("app.id"))
+	//	resource.SetPlural()
 }

@@ -72,7 +72,7 @@ PROTOBUF_ARGS += --grpc-gateway_out=logtostderr=true:.
 endif
 
 .PHONY all: all-atlas
-all-atlas: vendor-atlas protobuf-atlas docker-atlas
+all-atlas: vendor-atlas docker-atlas
 
 .PHONY fmt: fmt-atlas
 fmt-atlas:
@@ -106,12 +106,6 @@ endif
 
 .PHONY: push
 push: .push-$(IMAGE_NAME)-$(IMAGE_VERSION)
-
-.PHONY protobuf: protobuf-atlas
-protobuf-atlas:
-	@$(GENERATOR) \
-	$(PROTOBUF_ARGS) \
-	$(PROJECT_ROOT)/pkg/pb/service.proto
 
 .PHONY vendor: vendor-atlas
 vendor-atlas:
