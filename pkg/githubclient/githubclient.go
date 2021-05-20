@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/go-github/v35/github"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -14,7 +13,6 @@ type githubClient struct {
 	GithubToken string
 	RepoURL     string
 	client      *github.Client
-	logger      *logrus.Logger
 }
 
 type GithubClientClient interface {
@@ -23,7 +21,7 @@ type GithubClientClient interface {
 }
 
 // New creates a client wrapper
-func NewGithubClient(token string, logger *logrus.Logger) GithubClientClient {
+func NewGithubClient(token string) GithubClientClient {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -33,7 +31,6 @@ func NewGithubClient(token string, logger *logrus.Logger) GithubClientClient {
 
 	return &githubClient{
 		client: client,
-		logger: logger,
 	}
 }
 
@@ -52,20 +49,17 @@ func (gc *githubClient) GetReleaseNotesData(repo string) ([]ReleaseNotesData, er
 // GetFeatureFlagValue return feature flag value
 func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 	for _, v := range rndList {
-		title, body, err := v.PrepareReleaseNotesMessage(gc.logger)
-		if err != nil {
-			gc.logger.Errorf("Error while publishing release notes: %v", err)
-			continue
-		}
+		title, body := v.PrepareReleaseNotesMessage()
+
 		release := &github.RepositoryRelease{
 			TagName:         &v.Tag,
 			TargetCommitish: &v.Branch,
 			Name:            &title,
 			Body:            &body,
 		}
-		_, _, err = gc.client.Repositories.CreateRelease(context.Background(), viper.GetString("github.org"), viper.GetString("github.repo"), release)
+		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), viper.GetString("github.org"), viper.GetString("github.repo"), release)
 		if err != nil {
-			gc.logger.Errorf("Error while publishing release notes: %v", err)
+			log.Errorf("Error while publishing release notes: %v", err)
 			continue
 		}
 	}

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -27,25 +27,18 @@ type Commit struct {
 	PullRequest int
 }
 
-func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage(logger *logrus.Logger) (string, string, error) {
-	if rnd == nil {
-		return "", "", fmt.Errorf("error while preparation release notes message: release notes are (nil)")
-	}
-
+func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
 	releaseTitle := rnd.prepareTitle()
-	releaseBody, err := rnd.prepareBody(logger)
-	if err != nil {
-		return "", "", fmt.Errorf("error while release notes body preparation: %v for data %v", err, *rnd)
-	}
+	releaseBody := rnd.prepareBody()
 
-	return releaseTitle, releaseBody, nil
+	return releaseTitle, releaseBody
 }
 
 func (rnd *ReleaseNotesData) prepareTitle() string {
 	return "[" + rnd.Branch + "] " + rnd.Tag + " (" + rnd.Date.Format("2006-01-02") + ")"
 }
 
-func (rnd *ReleaseNotesData) prepareBody(logger *logrus.Logger) (string, error) {
+func (rnd *ReleaseNotesData) prepareBody() string {
 	resp := fmt.Sprintf("[Full Changelog](%s)\n\n**New commits and merged pull requests:**", rnd.ChangeLogLink)
 	if rnd.Commits != nil {
 		for _, v := range rnd.Commits {
@@ -53,7 +46,7 @@ func (rnd *ReleaseNotesData) prepareBody(logger *logrus.Logger) (string, error) 
 			if v.PullRequest != 0 {
 				prLink, err := url.Parse("https://github.com")
 				if err != nil {
-					logger.Errorf("error while PR link creation: %v", err)
+					log.Errorf("error while PR link creation: %v", err)
 				} else {
 					prLink.Path = path.Join(prLink.Path, viper.GetString("github.org"))
 					prLink.Path = path.Join(prLink.Path, viper.GetString("github.repo"))
@@ -68,5 +61,5 @@ func (rnd *ReleaseNotesData) prepareBody(logger *logrus.Logger) (string, error) 
 			resp = fmt.Sprintf("%s\n- %s", resp, commit)
 		}
 	}
-	return resp, nil
+	return resp
 }
