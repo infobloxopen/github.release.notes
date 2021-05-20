@@ -9,16 +9,16 @@ env:
   USER: 'user'
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 jobs:
-  build:
+  release-notes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: npm install
       - name: Run release.notes image
-        uses:  infobloxopen/github.release.notes@d0da111725a5b430fb2605ebd079a1afbdea91f2
+        uses: infobloxopen/github.release.notes@6292c4daf880e4117392f643c34a8e8238d3e613
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}     
+          github-user: QWE
+          github-org: info
   create-release:
     runs-on: ubuntu-latest
     steps:
