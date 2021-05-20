@@ -42,7 +42,7 @@ func (gc *githubClient) GetReleaseNotesData(repo string) ([]ReleaseNotesData, er
 		log.Error(err)
 	}
 	log.Debugf("repos: %v", repos)
-	rnd := make([]ReleaseNotesData, 5, 5)
+	rnd := make([]ReleaseNotesData, 5)
 	return rnd, nil
 }
 

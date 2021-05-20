@@ -45,7 +45,7 @@ func ServeExternal(logger *logrus.Logger) error {
 
 	rndList, err := ghClient.GetReleaseNotesData(viper.GetString("github.org"))
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	ghClient.PublishReleaseNotes(rndList)
 
