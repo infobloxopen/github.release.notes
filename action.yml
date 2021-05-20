@@ -24,7 +24,7 @@ inputs:
     required: false
 runs:
   using: 'docker'
-  image: 'docker://dlahuta/github.release.notes:26e5cdd-unsupported'
+  image: 'docker://dlahuta/github.release.notes:49af4b2'
   args:
     - --github.token=${{ inputs.github-token }}
     - --github.org=${{ inputs.github-org }}
