@@ -1,6 +1,6 @@
 # action.yml
-name: 'Hello World'
-description: 'HoHo'
+name: 'Release-Notes'
+description: 'The action for publishing release notes'
 inputs:
   github-token:  
     description: 'A GitHub personal access token used to commit to a branch on your behalf.'
@@ -9,9 +9,17 @@ inputs:
     description: 'The branch'
     required: false
     default: 'main'
+  org:  
+    description: 'Github Organization Name'
+    required: false
+  user:  
+    description: 'Github User Name'
+    required: false
 runs:
   using: 'docker'
   image: 'docker://dlahuta/github.release.notes:a493665-unsupported'
   args:
     - ${{ inputs.github-token }}
     - ${{ inputs.branch }}
+    - ${{ inputs.org }}
+    - ${{ inputs.user }}
