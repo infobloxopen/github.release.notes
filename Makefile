@@ -12,7 +12,7 @@ DOCKER_ENV := -e AWS_REGION=$(AWS_REGION) -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_
 USERNAME                := $(USER)
 GIT_COMMIT              := $(shell git describe --dirty=-unsupported --always --tags || echo pre-commit)
 IMAGE_VERSION           ?= $(GIT_COMMIT)
-IMAGE_REGISTRY ?= infoblox
+IMAGE_REGISTRY          ?= infoblox
 
 IMAGE_NAME              ?= github.release.notes
 # configuration for server binary and image
@@ -42,34 +42,15 @@ GO_PACKAGES             := $(shell go list ./... | grep -v vendor)
 PROJECT_ROOT            ?= $(PWD)
 BUILD_PATH              ?= bin
 DOCKERFILE_PATH         ?= $(CURDIR)/docker
-GO_IMAGE 								?= golang:1.14-alpine
-GO_RUNNER 							?= $(DOCKER_RUNNER) $(GO_IMAGE)
+GO_IMAGE                ?= golang:1.15-alpine
+GO_RUNNER               ?= $(DOCKER_RUNNER) $(GO_IMAGE)
 
 # configuration for image names
 USERNAME                ?= $(USER)
 GIT_COMMIT              ?= $(shell git describe --dirty=-unsupported --always --tags || echo pre-commit)
 IMAGE_VERSION           ?= $(GIT_COMMIT)-$(USERNAME)
 
-# configuration for building on host machine
-PROTOBUF_ARGS =  -I=$(PROJECT_ROOT)/vendor
-PROTOBUF_ARGS += --go_out=plugins=grpc:.
-PROTOBUF_ARGS += --validate_out="lang=go:."
-WITH_DATABASE ?= false
-WITH_GATEWAY  ?= false
-
 GO_MOD = go.mod
-
-
-ifeq ($(WITH_DATABASE), true)
-PROTOBUF_ARGS += --gorm_out=.
-endif
-
-ifeq ($(WITH_GATEWAY), true)
-PROTOBUF_ARGS += --grpc-gateway_out="logtostderr=true,allow_delete_body=true:."
-PROTOBUF_ARGS += --swagger_out="atlas_patch=true,allow_delete_body=true:."
-else ifeq ($(WITH_EXPAND), true)
-PROTOBUF_ARGS += --grpc-gateway_out=logtostderr=true:.
-endif
 
 .PHONY all: all-atlas
 all-atlas: vendor-atlas docker-atlas
@@ -117,31 +98,3 @@ vendor-atlas:
 clean-atlas:
 	@docker rmi -f $(shell docker images -q $(SERVER_IMAGE)) || true
 	rm .push-* .docker-*
-
-.PHONY migrate-up: migrate-up-atlas
-migrate-up-atlas:
-ifeq ($(WITH_DATABASE), true)
-	@$(DOCKER_RUNNER) --net="host" $(MIGRATETOOL_IMAGE) --verbose --path=$(MIGRATION_PATH_IN_CONTAINER)/ --database.dsn=$(DATABASE_URL) up
-else
-	@echo "Your application doesn't have database, migrations aren't supported"
-endif
-
-.PHONY migrate-down: migrate-down-atlas
-migrate-down-atlas:
-ifeq ($(WITH_DATABASE), true)
-	@$(DOCKER_RUNNER) --net="host" $(MIGRATETOOL_IMAGE) --verbose --path=$(MIGRATION_PATH_IN_CONTAINER)/ --database.dsn=$(DATABASE_URL) down
-else
-	@echo "Your application doesn't have database, migrations aren't supported"
-endif
-
-.PHONY: run-swagger-ui
-run-swagger-ui:
-ifeq ($(WITH_GATEWAY), true)
-	(sleep 3; open http://127.0.0.1/ ) &
-	docker run --rm -p 80:8080 \
-		-e SWAGGER_JSON=/json/service.swagger.json \
-		-v $(shell pwd)/pkg/pb/:/json \
-		swaggerapi/swagger-ui
-else
-	@echo "Your application doesn't have swagger file"
-endif
