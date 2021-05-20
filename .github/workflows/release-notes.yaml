@@ -1,24 +1,23 @@
 name: release-notes
 on:
   push:
-    tags: ['*']
+    tags: ['v*']
   workflow_dispatch:
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   release-notes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set env        
+      - name: Set env
         id: vars        
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}      
+        run: |
+          echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+          echo ::set-output name=org::${{ github.repository }} | awk '{split($0,env,"/"); print env[1]}'
       - name: Run release.notes image
         uses: infobloxopen/github.release.notes@cb9419dd6598de67d310b0fd08bae26822d6a972
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.vars.outputs.tag }}
           github-user: ${{ github.actor }}
-          github-repo: ${{ github.repository }}
+          github-repo: ${{ github.event.repository.name }}
+          github-org: ${{ steps.vars.outputs.org }}
