@@ -105,6 +105,30 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 					}
 				}
 			}
+		} else {
+			commitsList, _, err := gc.client.Repositories.ListCommits(context.Background(),
+				gc.OrgName, gc.RepoName, &github.CommitsListOptions{
+					SHA: tagData.GetObject().GetSHA(),
+				})
+			if err != nil {
+				log.Errorf("Error getting commits for the tag %v: %v", tagData.GetTag(), err)
+			} else {
+				for _, i := range commitsList {
+					commitMsg := i.GetCommit().GetMessage()
+					commitMsg = strings.Split(commitMsg, "\n")[0]
+					re, err := regexp.Compile(`\(#\d+\)`)
+					if err != nil {
+						log.Errorf("Error in regexp compile: %v", err)
+					} else {
+						commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
+					}
+					commits = append(commits, CommitData{
+						Author:  i.GetAuthor().GetLogin(),
+						Message: commitMsg,
+						URL:     i.GetAuthor().GetURL(),
+					})
+				}
+			}
 		}
 		rnd = append(rnd,
 			ReleaseNotesData{Tag: tagData.GetTag(),
