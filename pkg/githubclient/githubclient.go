@@ -58,7 +58,7 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 		if err != nil {
 			return nil, err
 		}
-		if viper.GetBool("update.exist") == false {
+		if !viper.GetBool("update.exist") {
 			isSkipThisTag := false
 			for _, release := range releases {
 				if release.GetTagName() == tagData.GetTag() {
@@ -67,7 +67,7 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 				}
 			}
 			if isSkipThisTag {
-				log.Info("Skipping tag: %v", tagData.GetTag())
+				log.Infof("Skipping tag: %v", tagData.GetTag())
 				continue
 			}
 		}
