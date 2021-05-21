@@ -23,7 +23,7 @@ inputs:
     default: 'main'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'docker://dlahuta/github.release.notes:9512d38'
   args:
     - --github.token=${{ inputs.github-token }}
     - --github.org=${{ inputs.github-org }}
