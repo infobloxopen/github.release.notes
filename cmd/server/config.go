@@ -11,7 +11,7 @@ const (
 	defaultUpdateIfExist = false
 
 	// Logging
-	defaultLoggingLevel = "debug"
+	defaultLoggingLevel = "info"
 
 	// github
 	defaulGithubToken = ""
