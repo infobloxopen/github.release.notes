@@ -2,26 +2,28 @@ package githubclient
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v35/github"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
 type githubClient struct {
 	GithubToken string
 	OrgName     string
+	RepoName    string
 	client      *github.Client
 }
 
 type GithubClientClient interface {
-	GetReleaseNotesData(org string) ([]ReleaseNotesData, error)
+	GetReleaseNotesData() ([]ReleaseNotesData, error)
 	PublishReleaseNotes(rndList []ReleaseNotesData)
 }
 
 // New creates a client wrapper
-func NewGithubClient(token string) GithubClientClient {
+func NewGithubClient(token, org, repo string) GithubClientClient {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -30,19 +32,61 @@ func NewGithubClient(token string) GithubClientClient {
 	client := github.NewClient(tc)
 
 	return &githubClient{
-		client: client,
+		OrgName:  org,
+		RepoName: repo,
+		client:   client,
 	}
 }
 
 // GetReleaseNotesData return release notes data collected
-func (gc *githubClient) GetReleaseNotesData(org string) ([]ReleaseNotesData, error) {
-	gc.OrgName = org
-	repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), org, nil)
+func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
+	tagsList, _, err := gc.client.Git.ListMatchingRefs(context.Background(), gc.OrgName, gc.RepoName, &github.ReferenceListOptions{Ref: "tags"})
 	if err != nil {
-		log.Error(err)
+		return nil, err
 	}
-	log.Debugf("repos: %v", repos)
-	rnd := make([]ReleaseNotesData, 5)
+	if len(tagsList) == 0 {
+		return nil, fmt.Errorf("no tags were found")
+	}
+	var rnd []ReleaseNotesData
+	for i, tag := range tagsList {
+		tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.GetObject().GetSHA())
+		if err != nil {
+			return nil, err
+		}
+		changeLogLink := ""
+		var previousTag *github.Tag
+		var commits []CommitData
+		if i > 0 {
+			previousTag, _, err = gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tagsList[i-1].GetObject().GetSHA())
+			if err == nil {
+				changeLogLink = fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s",
+					gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
+				tagCompare, _, _ := gc.client.Repositories.CompareCommits(context.Background(), gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
+				if tagCompare != nil {
+					for _, i := range tagCompare.Commits {
+						commitMsg := i.GetCommit().GetMessage()
+						commitMsg = strings.Split(commitMsg, "\n")[0]
+						commitMsg = strings.ReplaceAll(commitMsg, "(", "")
+						commitMsg = strings.ReplaceAll(commitMsg, ")", "")
+						commits = append([]CommitData{
+							{
+								Author:  i.GetCommit().GetAuthor().GetName(),
+								Message: commitMsg,
+								URL:     i.GetAuthor().GetURL(),
+							},
+						}, commits...)
+					}
+				}
+			}
+		}
+		rnd = append(rnd,
+			ReleaseNotesData{Tag: tagData.GetTag(),
+				Comment:       tagData.GetMessage(),
+				Date:          tagData.GetTagger().GetDate(),
+				ChangeLogLink: changeLogLink,
+				Commits:       commits,
+			})
+	}
 	return rnd, nil
 }
 
@@ -57,7 +101,8 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			Name:            &title,
 			Body:            &body,
 		}
-		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), viper.GetString("github.org"), viper.GetString("github.repo"), release)
+		log.Debugf("release: %v", release)
+		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), gc.OrgName, gc.RepoName, release)
 		if err != nil {
 			log.Errorf("Error while publishing release notes: %v", err)
 			continue

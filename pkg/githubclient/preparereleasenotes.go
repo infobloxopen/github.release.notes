@@ -2,13 +2,7 @@ package githubclient
 
 import (
 	"fmt"
-	"net/url"
-	"path"
-	"strconv"
 	"time"
-
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type ReleaseNotesData struct {
@@ -17,14 +11,13 @@ type ReleaseNotesData struct {
 	Comment       string
 	Date          time.Time
 	ChangeLogLink string
-	Commits       []Commit
+	Commits       []CommitData
 }
 
-type Commit struct {
-	Title       string
-	Author      string
-	AuthorLink  string
-	PullRequest int
+type CommitData struct {
+	Message string
+	Author  string
+	URL     string
 }
 
 func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
@@ -35,7 +28,11 @@ func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
 }
 
 func (rnd *ReleaseNotesData) prepareTitle() string {
-	return "[" + rnd.Branch + "] " + rnd.Tag + " (" + rnd.Date.Format("2006-01-02") + ")"
+	title := ""
+	if rnd.Branch != "" {
+		title = "[" + rnd.Branch + "] "
+	}
+	return title + "[" + rnd.Tag + "] " + rnd.Comment + " (" + rnd.Date.Format("2006-01-02") + ")"
 }
 
 // Body template:
@@ -49,26 +46,29 @@ func (rnd *ReleaseNotesData) prepareTitle() string {
 // - commit_2 [#2] (author_2)
 // - commit_1 [#1] (author_1)
 func (rnd *ReleaseNotesData) prepareBody() string {
-	resp := fmt.Sprintf("[Full Changelog](%s)", rnd.ChangeLogLink)
+	resp := ""
+	if rnd.ChangeLogLink != "" {
+		resp = fmt.Sprintf("[Full Changelog](%s)", rnd.ChangeLogLink)
+	}
 	if rnd.Commits != nil {
-		resp = fmt.Sprintf("%s\n\n**New commits and merged pull requests:**\n", resp)
+		if resp != "" {
+			resp += "\n\n"
+		}
+		resp += "**New commits and merged pull requests:**\n"
 		for _, v := range rnd.Commits {
-			commit := v.Title
-			if v.PullRequest != 0 {
-				prLink, err := url.Parse("https://github.com")
-				if err != nil {
-					log.Errorf("error while PR link creation: %v", err)
-				} else {
-					prLink.Path = path.Join(prLink.Path, viper.GetString("github.org"))
-					prLink.Path = path.Join(prLink.Path, viper.GetString("github.repo"))
-					prLink.Path = path.Join(prLink.Path, "pull")
-					prLink.Path = path.Join(prLink.Path, strconv.Itoa(v.PullRequest))
-					commit += " [#" + strconv.Itoa(v.PullRequest) + "](" + prLink.String() + ")"
-				}
-			}
-			if v.Author != "" && v.AuthorLink != "" {
-				commit += " ([" + v.Author + "](" + v.AuthorLink + "))"
-			}
+			// log.Debugf("%v", v)
+			commit := v.Message
+			// prLink, err := url.Parse("https://github.com")
+			// if err != nil {
+			// 	log.Errorf("error while PR link creation: %v", err)
+			// } else {
+			// 	prLink.Path = path.Join(prLink.Path, viper.GetString("github.org"))
+			// 	prLink.Path = path.Join(prLink.Path, viper.GetString("github.repo"))
+			// 	prLink.Path = path.Join(prLink.Path, "pull")
+			// 	prLink.Path = path.Join(prLink.Path, strconv.Itoa(v.PullRequest))
+			// 	commit += " [#" + strconv.Itoa(v.PullRequest) + "](" + prLink.String() + ")"
+			// }
+			commit = fmt.Sprintf("%s ([%s](%s))", commit, v.Author, v.URL)
 			resp = fmt.Sprintf("%s\n- %s", resp, commit)
 		}
 	}
