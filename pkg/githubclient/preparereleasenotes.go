@@ -35,7 +35,11 @@ func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
 }
 
 func (rnd *ReleaseNotesData) prepareTitle() string {
-	return "[" + rnd.Branch + "] " + rnd.Tag + " (" + rnd.Date.Format("2006-01-02") + ")"
+	title := ""
+	if rnd.Branch != "" {
+		title = "[" + rnd.Branch + "] "
+	}
+	return title + rnd.Tag + " (" + rnd.Date.Format("2006-01-02") + ")"
 }
 
 // Body template:
@@ -49,9 +53,15 @@ func (rnd *ReleaseNotesData) prepareTitle() string {
 // - commit_2 [#2] (author_2)
 // - commit_1 [#1] (author_1)
 func (rnd *ReleaseNotesData) prepareBody() string {
-	resp := fmt.Sprintf("[Full Changelog](%s)", rnd.ChangeLogLink)
+	resp := ""
+	if rnd.ChangeLogLink != "" {
+		resp = fmt.Sprintf("[Full Changelog](%s)", rnd.ChangeLogLink)
+	}
 	if rnd.Commits != nil {
-		resp = fmt.Sprintf("%s\n\n**New commits and merged pull requests:**\n", resp)
+		if resp != "" {
+			resp += "\n\n"
+		}
+		resp += "**New commits and merged pull requests:**\n"
 		for _, v := range rnd.Commits {
 			commit := v.Title
 			if v.PullRequest != 0 {
