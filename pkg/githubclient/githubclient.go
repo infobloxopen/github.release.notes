@@ -3,6 +3,7 @@ package githubclient
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/go-github/v35/github"
@@ -54,9 +55,14 @@ func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesDat
 	}
 	var rnd []ReleaseNotesData
 	for i, tag := range tagsList {
+		if tag.GetObject().GetType() != "tag" {
+			log.Errorf("Tag %v is not annotated: %v", tag.GetRef(), tag.GetObject().GetType())
+			continue
+		}
 		tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.GetObject().GetSHA())
 		if err != nil {
-			return nil, err
+			log.Errorf("Error while tag processing: %v", err)
+			continue
 		}
 
 		// check if the tag is set and will release just the given tag
@@ -89,16 +95,36 @@ func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesDat
 					for _, i := range tagCompare.Commits {
 						commitMsg := i.GetCommit().GetMessage()
 						commitMsg = strings.Split(commitMsg, "\n")[0]
-						commitMsg = strings.ReplaceAll(commitMsg, "(", "")
-						commitMsg = strings.ReplaceAll(commitMsg, ")", "")
+						re := regexp.MustCompile(`\(#\d+\)`)
+						commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
 						commits = append([]CommitData{
 							{
-								Author:  i.GetCommit().GetAuthor().GetName(),
+								Author:  i.GetAuthor().GetLogin(),
 								Message: commitMsg,
 								URL:     i.GetAuthor().GetURL(),
 							},
 						}, commits...)
 					}
+				}
+			}
+		} else {
+			commitsList, _, err := gc.client.Repositories.ListCommits(context.Background(),
+				gc.OrgName, gc.RepoName, &github.CommitsListOptions{
+					SHA: tagData.GetObject().GetSHA(),
+				})
+			if err != nil {
+				log.Errorf("Error getting commits for the tag %v: %v", tagData.GetTag(), err)
+			} else {
+				for _, i := range commitsList {
+					commitMsg := i.GetCommit().GetMessage()
+					commitMsg = strings.Split(commitMsg, "\n")[0]
+					re := regexp.MustCompile(`\(#\d+\)`)
+					commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
+					commits = append(commits, CommitData{
+						Author:  i.GetAuthor().GetLogin(),
+						Message: commitMsg,
+						URL:     i.GetAuthor().GetURL(),
+					})
 				}
 			}
 		}
@@ -139,4 +165,8 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			continue
 		}
 	}
+}
+
+func repl(str string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(str, ")", ""), "(", "")
 }
