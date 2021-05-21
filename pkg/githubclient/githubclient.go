@@ -39,36 +39,46 @@ func NewGithubClient(token, org, repo string) GithubClientClient {
 
 // GetReleaseNotesData return release notes data collected
 func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
-	//tagsList, _, err := gc.client.Repositories.ListTags(context.Background(), gc.OrgName, gc.RepoName, nil)
-	tagRef, _, err := gc.client.Git.ListMatchingRefs(context.Background(), gc.OrgName, gc.RepoName, &github.ReferenceListOptions{Ref: "tags"})
-	//repos, _, err := gc.client.Repositories.ListByOrg(context.Background(), org, nil)
+	tagsList, _, err := gc.client.Git.ListMatchingRefs(context.Background(), gc.OrgName, gc.RepoName, &github.ReferenceListOptions{Ref: "tags"})
 	if err != nil {
 		return nil, err
 	}
-	if len(tagRef) == 0 {
+	if len(tagsList) == 0 {
 		return nil, fmt.Errorf("no tags were found")
 	}
-	rnd := make([]ReleaseNotesData, 5)
-	for i, tag := range tagRef {
-		log.Infoln(tag)
-		log.Infoln(tag.GetObject().GetSHA())
-		log.Infoln(tag.GetRef())
-		changeLogLink := ""
-		if i < len(tagRef)-1 {
-			previousTag := tagRef[i+1].GetRef()
-			changeLogLink = fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", gc.OrgName, gc.RepoName, previousTag, tag.GetRef())
+	var rnd []ReleaseNotesData
+	for i, tag := range tagsList {
+		tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.GetObject().GetSHA())
+		if err != nil {
+			return nil, err
 		}
-		//tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.Commit.GetSHA())
-		//if err != nil {
-		//	return nil, err
-		//}
-		//log.Infof("!!! %s !!!", tag.GetCommit().GetAuthor().GetDate().String)
-		//log.Infof("!!! %s !!!", tagData.GetTagger().GetDate().String)
+		changeLogLink := ""
+		var previousTag *github.Tag
+		var commits []CommitData
+		if i > 0 {
+			previousTag, _, err = gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tagsList[i-1].GetObject().GetSHA())
+			if err == nil {
+				changeLogLink = fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s",
+					gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
+				tagCompare, _, _ := gc.client.Repositories.CompareCommits(context.Background(), gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
+				if tagCompare != nil {
+					for _, i := range tagCompare.Commits {
+						commits = append(commits, CommitData{
+							Author:  i.GetCommit().GetAuthor().GetName(),
+							Message: i.GetCommit().GetMessage(),
+							URL:     i.GetAuthor().GetURL(),
+						})
+					}
+				}
+			}
+
+		}
 		rnd = append(rnd,
-			ReleaseNotesData{Tag: tag.GetRef(),
-				Comment: "", //tag.GetCommit().GetMessage(),
-				//Date:          "",//tag.GetCommit().GetAuthor().GetDate(),
+			ReleaseNotesData{Tag: tagData.GetTag(),
+				Comment:       tagData.GetMessage(),
+				Date:          tagData.GetTagger().GetDate(),
 				ChangeLogLink: changeLogLink,
+				Commits:       commits,
 			})
 	}
 	return rnd, nil
@@ -86,10 +96,10 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			Body:            &body,
 		}
 		log.Debugf("release: %v", release)
-		// _, _, err := gc.client.Repositories.CreateRelease(context.Background(), viper.GetString("github.org"), viper.GetString("github.repo"), release)
-		// if err != nil {
-		// 	log.Errorf("Error while publishing release notes: %v", err)
-		// 	continue
-		// }
+		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), gc.OrgName, gc.RepoName, release)
+		if err != nil {
+			log.Errorf("Error while publishing release notes: %v", err)
+			continue
+		}
 	}
 }
