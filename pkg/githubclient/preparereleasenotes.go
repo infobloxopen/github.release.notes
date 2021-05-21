@@ -12,6 +12,7 @@ type ReleaseNotesData struct {
 	Date          time.Time
 	ChangeLogLink string
 	Commits       []CommitData
+	releaseID     int64
 }
 
 type CommitData struct {

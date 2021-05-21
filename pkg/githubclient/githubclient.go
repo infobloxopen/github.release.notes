@@ -58,18 +58,16 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !viper.GetBool("update.exist") {
-			isSkipThisTag := false
-			for _, release := range releases {
-				if release.GetTagName() == tagData.GetTag() {
-					isSkipThisTag = true
-					continue
-				}
-			}
-			if isSkipThisTag {
-				log.Infof("Skipping tag: %v", tagData.GetTag())
+		var releaseID int64
+		for _, release := range releases {
+			if release.GetTagName() == tagData.GetTag() {
+				releaseID = release.GetID()
 				continue
 			}
+		}
+		if !viper.GetBool("update.exist") && releaseID != 0 {
+			log.Debugf("Skipping tag: %v", tagData.GetTag())
+			continue
 		}
 
 		changeLogLink := ""
@@ -104,6 +102,7 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 				Date:          tagData.GetTagger().GetDate(),
 				ChangeLogLink: changeLogLink,
 				Commits:       commits,
+				releaseID:     releaseID,
 			})
 	}
 	return rnd, nil
@@ -121,6 +120,13 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			Body:            &body,
 		}
 		log.Debugf("release: %v", release)
+		if v.releaseID != 0 {
+			_, err := gc.client.Repositories.DeleteRelease(context.Background(), gc.OrgName, gc.RepoName, v.releaseID)
+			if err != nil {
+				log.Errorf("Error while deleting release notes: %v", err)
+				continue
+			}
+		}
 		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), gc.OrgName, gc.RepoName, release)
 		if err != nil {
 			log.Errorf("Error while publishing release notes: %v", err)
