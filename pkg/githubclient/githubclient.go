@@ -67,14 +67,13 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 						commits = append([]CommitData{
 							{
 								Author:  i.GetCommit().GetAuthor().GetName(),
-								Message: strings.Replace(strings.Replace(i.GetCommit().GetMessage(), "(", "", -1), ")", "", -1),
+								Message: strings.ReplaceAll(strings.ReplaceAll(i.GetCommit().GetMessage(), "(", ""), ")", ""),
 								URL:     i.GetAuthor().GetURL(),
 							},
 						}, commits...)
 					}
 				}
 			}
-
 		}
 		rnd = append(rnd,
 			ReleaseNotesData{Tag: tagData.GetTag(),

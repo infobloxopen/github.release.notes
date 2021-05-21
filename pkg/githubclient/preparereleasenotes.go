@@ -56,7 +56,7 @@ func (rnd *ReleaseNotesData) prepareBody() string {
 		}
 		resp += "**New commits and merged pull requests:**\n"
 		for _, v := range rnd.Commits {
-			//log.Debugf("%v", v)
+			// log.Debugf("%v", v)
 			commit := v.Message
 			// prLink, err := url.Parse("https://github.com")
 			// if err != nil {
