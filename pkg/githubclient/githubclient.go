@@ -3,6 +3,7 @@ package githubclient
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v35/github"
 	log "github.com/sirupsen/logrus"
@@ -63,11 +64,13 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 				tagCompare, _, _ := gc.client.Repositories.CompareCommits(context.Background(), gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
 				if tagCompare != nil {
 					for _, i := range tagCompare.Commits {
-						commits = append(commits, CommitData{
-							Author:  i.GetCommit().GetAuthor().GetName(),
-							Message: i.GetCommit().GetMessage(),
-							URL:     i.GetAuthor().GetURL(),
-						})
+						commits = append([]CommitData{
+							{
+								Author:  i.GetCommit().GetAuthor().GetName(),
+								Message: strings.Replace(strings.Replace(i.GetCommit().GetMessage(), "(", "", -1), ")", "", -1),
+								URL:     i.GetAuthor().GetURL(),
+							},
+						}, commits...)
 					}
 				}
 			}
