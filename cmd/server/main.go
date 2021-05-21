@@ -15,6 +15,7 @@ func main() {
 	doneC := make(chan error)
 	logger := NewLogger()
 
+	logrus.Debugf("update.exist: %v", viper.GetString("update.exist"))
 	logrus.Debugf("github.repo: %v", viper.GetString("github.repo"))
 	logrus.Debugf("github.user: %v", viper.GetString("github.user"))
 	logrus.Debugf("github.org: %v", viper.GetString("github.org"))

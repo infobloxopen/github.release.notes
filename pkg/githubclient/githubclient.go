@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-github/v35/github"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
@@ -47,12 +48,30 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 	if len(tagsList) == 0 {
 		return nil, fmt.Errorf("no tags were found")
 	}
+	releases, _, err := gc.client.Repositories.ListReleases(context.Background(), gc.OrgName, gc.RepoName, nil)
+	if err != nil {
+		return nil, err
+	}
 	var rnd []ReleaseNotesData
 	for i, tag := range tagsList {
 		tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.GetObject().GetSHA())
 		if err != nil {
 			return nil, err
 		}
+		if viper.GetBool("update.exist") == false {
+			isSkipThisTag := false
+			for _, release := range releases {
+				if release.GetTagName() == tagData.GetTag() {
+					isSkipThisTag = true
+					continue
+				}
+			}
+			if isSkipThisTag {
+				log.Info("Skipping tag: %v", tagData.GetTag())
+				continue
+			}
+		}
+
 		changeLogLink := ""
 		var previousTag *github.Tag
 		var commits []CommitData
