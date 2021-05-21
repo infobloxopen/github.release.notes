@@ -28,5 +28,5 @@ runs:
     - --github.token=${{ inputs.github-token }}
     - --github.org=${{ inputs.github-org }}
     - --github.repo=${{ inputs.github-repo }}
-    - --github.user=${{ inputs.github-user }}
+    - --github.user=$GITHUB_ACTOR
     - --github.tag=${{ inputs.github-tag }}

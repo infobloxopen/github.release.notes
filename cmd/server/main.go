@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -20,6 +21,9 @@ func main() {
 	logrus.Debugf("github.user: %v", viper.GetString("github.user"))
 	logrus.Debugf("github.org: %v", viper.GetString("github.org"))
 	logrus.Debugf("github.tag: %v", viper.GetString("github.tag"))
+
+	logrus.Infof("github.tag2: %v", os.Getenv("GITHUB_REPOSITORY_OWNER"))
+	logrus.Infof("github.user2: %v", os.Getenv("GITHUB_ACTOR"))
 
 	go func() { doneC <- ServeExternal() }()
 
