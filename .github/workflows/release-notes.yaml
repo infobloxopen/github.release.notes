@@ -14,7 +14,7 @@ jobs:
           echo ::set-output name=tag::${GITHUB_REF#refs/*/}
           echo ::set-output name=org::${{ github.repository }} | awk '{split($0,env,"/"); print env[1]}'
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@cb9419dd6598de67d310b0fd08bae26822d6a972
+        uses: infobloxopen/github.release.notes@697343b9fef62f7805bb3d2827b81fc0a490ee92
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.vars.outputs.tag }}

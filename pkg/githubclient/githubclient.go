@@ -19,7 +19,7 @@ type githubClient struct {
 }
 
 type GithubClientClient interface {
-	GetReleaseNotesData() ([]ReleaseNotesData, error)
+	GetReleaseNotesData(tag string) ([]ReleaseNotesData, error)
 	PublishReleaseNotes(rndList []ReleaseNotesData)
 }
 
@@ -40,7 +40,7 @@ func NewGithubClient(token, org, repo string) GithubClientClient {
 }
 
 // GetReleaseNotesData return release notes data collected
-func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
+func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesData, error) {
 	tagsList, _, err := gc.client.Git.ListMatchingRefs(context.Background(), gc.OrgName, gc.RepoName, &github.ReferenceListOptions{Ref: "tags"})
 	if err != nil {
 		return nil, err
@@ -58,6 +58,12 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// check if the tag is set and will release just the given tag
+		if *tagData.Tag != githubTag && githubTag != "" {
+			continue
+		}
+
 		var releaseID int64
 		for _, release := range releases {
 			if release.GetTagName() == tagData.GetTag() {

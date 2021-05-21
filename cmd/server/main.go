@@ -48,7 +48,7 @@ func NewLogger() *logrus.Logger {
 func ServeExternal() error {
 	ghClient := gh.NewGithubClient(viper.GetString("github.token"), viper.GetString("github.org"), viper.GetString("github.repo"))
 
-	rndList, err := ghClient.GetReleaseNotesData()
+	rndList, err := ghClient.GetReleaseNotesData(viper.GetString("github.tag"))
 	if err != nil {
 		return err
 	}
@@ -67,15 +67,6 @@ func init() {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AddConfigPath(viper.GetString("config.source"))
-	if viper.GetString("config.file") != "" {
-		log.Printf("Serving from configuration file: %s", viper.GetString("config.file"))
-		viper.SetConfigName(viper.GetString("config.file"))
-		if err := viper.ReadInConfig(); err != nil {
-			log.Fatalf("cannot load configuration: %v", err)
-		}
-	} else {
-		log.Printf("Serving from default values, environment variables, and/or flags")
-	}
-	//	resource.RegisterApplication(viper.GetString("app.id"))
-	//	resource.SetPlural()
+
+	log.Printf("Serving from default values, environment variables, and/or flags")
 }
