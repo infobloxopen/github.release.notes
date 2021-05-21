@@ -89,12 +89,8 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 					for _, i := range tagCompare.Commits {
 						commitMsg := i.GetCommit().GetMessage()
 						commitMsg = strings.Split(commitMsg, "\n")[0]
-						re, err := regexp.Compile(`\(#\d+\)`)
-						if err != nil {
-							log.Errorf("Error in regexp compile: %v", err)
-						} else {
-							commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
-						}
+						re := regexp.MustCompile(`\(#\d+\)`)
+						commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
 						commits = append([]CommitData{
 							{
 								Author:  i.GetAuthor().GetLogin(),
@@ -116,12 +112,8 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 				for _, i := range commitsList {
 					commitMsg := i.GetCommit().GetMessage()
 					commitMsg = strings.Split(commitMsg, "\n")[0]
-					re, err := regexp.Compile(`\(#\d+\)`)
-					if err != nil {
-						log.Errorf("Error in regexp compile: %v", err)
-					} else {
-						commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
-					}
+					re := regexp.MustCompile(`\(#\d+\)`)
+					commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
 					commits = append(commits, CommitData{
 						Author:  i.GetAuthor().GetLogin(),
 						Message: commitMsg,
