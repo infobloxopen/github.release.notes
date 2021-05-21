@@ -3,6 +3,7 @@ package githubclient
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/go-github/v35/github"
@@ -54,9 +55,14 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 	}
 	var rnd []ReleaseNotesData
 	for i, tag := range tagsList {
+		if tag.GetObject().GetType() != "tag" {
+			log.Errorf("Tag %v is not annotated: %v", tag.GetRef(), tag.GetObject().GetType())
+			continue
+		}
 		tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.GetObject().GetSHA())
 		if err != nil {
-			return nil, err
+			log.Errorf("Error while tag processing: %v", err)
+			continue
 		}
 		var releaseID int64
 		for _, release := range releases {
@@ -83,11 +89,15 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 					for _, i := range tagCompare.Commits {
 						commitMsg := i.GetCommit().GetMessage()
 						commitMsg = strings.Split(commitMsg, "\n")[0]
-						commitMsg = strings.ReplaceAll(commitMsg, "(", "")
-						commitMsg = strings.ReplaceAll(commitMsg, ")", "")
+						re, err := regexp.Compile(`\(#\d+\)`)
+						if err != nil {
+							log.Errorf("Error in regexp compile: %v", err)
+						} else {
+							commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
+						}
 						commits = append([]CommitData{
 							{
-								Author:  i.GetCommit().GetAuthor().GetName(),
+								Author:  i.GetAuthor().GetLogin(),
 								Message: commitMsg,
 								URL:     i.GetAuthor().GetURL(),
 							},
@@ -133,4 +143,8 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			continue
 		}
 	}
+}
+
+func repl(str string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(str, ")", ""), "(", "")
 }
