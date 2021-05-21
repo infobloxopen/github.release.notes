@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-github/v35/github"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
@@ -47,12 +48,28 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 	if len(tagsList) == 0 {
 		return nil, fmt.Errorf("no tags were found")
 	}
+	releases, _, err := gc.client.Repositories.ListReleases(context.Background(), gc.OrgName, gc.RepoName, nil)
+	if err != nil {
+		return nil, err
+	}
 	var rnd []ReleaseNotesData
 	for i, tag := range tagsList {
 		tagData, _, err := gc.client.Git.GetTag(context.Background(), gc.OrgName, gc.RepoName, tag.GetObject().GetSHA())
 		if err != nil {
 			return nil, err
 		}
+		var releaseID int64
+		for _, release := range releases {
+			if release.GetTagName() == tagData.GetTag() {
+				releaseID = release.GetID()
+				continue
+			}
+		}
+		if !viper.GetBool("update.exist") && releaseID != 0 {
+			log.Debugf("Skipping tag: %v", tagData.GetTag())
+			continue
+		}
+
 		changeLogLink := ""
 		var previousTag *github.Tag
 		var commits []CommitData
@@ -85,6 +102,7 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 				Date:          tagData.GetTagger().GetDate(),
 				ChangeLogLink: changeLogLink,
 				Commits:       commits,
+				releaseID:     releaseID,
 			})
 	}
 	return rnd, nil
@@ -102,6 +120,13 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 			Body:            &body,
 		}
 		log.Debugf("release: %v", release)
+		if v.releaseID != 0 {
+			_, err := gc.client.Repositories.DeleteRelease(context.Background(), gc.OrgName, gc.RepoName, v.releaseID)
+			if err != nil {
+				log.Errorf("Error while deleting release notes: %v", err)
+				continue
+			}
+		}
 		_, _, err := gc.client.Repositories.CreateRelease(context.Background(), gc.OrgName, gc.RepoName, release)
 		if err != nil {
 			log.Errorf("Error while publishing release notes: %v", err)
