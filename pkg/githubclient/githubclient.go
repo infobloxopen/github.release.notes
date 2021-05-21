@@ -64,10 +64,14 @@ func (gc *githubClient) GetReleaseNotesData() ([]ReleaseNotesData, error) {
 				tagCompare, _, _ := gc.client.Repositories.CompareCommits(context.Background(), gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
 				if tagCompare != nil {
 					for _, i := range tagCompare.Commits {
+						commitMsg := i.GetCommit().GetMessage()
+						commitMsg = strings.Split(commitMsg, "\n")[0]
+						commitMsg = strings.ReplaceAll(commitMsg, "(", "")
+						commitMsg = strings.ReplaceAll(commitMsg, ")", "")
 						commits = append([]CommitData{
 							{
 								Author:  i.GetCommit().GetAuthor().GetName(),
-								Message: strings.ReplaceAll(strings.ReplaceAll(i.GetCommit().GetMessage(), "(", ""), ")", ""),
+								Message: commitMsg,
 								URL:     i.GetAuthor().GetURL(),
 							},
 						}, commits...)
