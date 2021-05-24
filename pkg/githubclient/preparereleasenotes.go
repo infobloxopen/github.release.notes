@@ -1,26 +1,32 @@
 package githubclient
 
 import (
-	"fmt"
-	"time"
+	"bytes"
+	"text/template"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // ReleaseNotesData is a base struct for release notes
 type ReleaseNotesData struct {
-	Tag           string
 	Branch        string
-	Comment       string
-	Date          time.Time
 	ChangeLogLink string
 	Commits       []CommitData
+	Tag           string
+	TagComment    string
+	TagDate       string
 	releaseID     int64
 }
 
 // CommitData contains necessary information about commit data
 type CommitData struct {
-	Message string
-	Author  string
-	URL     string
+	CommitAuthor    string
+	CommitAuthorURL string
+	CommitDate      string
+	CommitMessage   string
+	CommitPR        string
+	CommitURL       string
 }
 
 // PrepareReleaseNotesMessage prepares full information about tag or list of tags
@@ -32,49 +38,23 @@ func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
 }
 
 func (rnd *ReleaseNotesData) prepareTitle() string {
-	title := ""
-	if rnd.Branch != "" {
-		title = "[" + rnd.Branch + "] "
+	titleTmpl := template.Must(template.ParseFiles(viper.GetString("template.title")))
+	var title bytes.Buffer
+	err := titleTmpl.Execute(&title, rnd)
+	if err != nil {
+		log.Errorf("Error while title template %s rendering: %v", viper.GetString("template.title"), err)
+		return ""
 	}
-	return title + "[" + rnd.Tag + "] " + rnd.Comment + " (" + rnd.Date.Format("2006-01-02") + ")"
+	return title.String()
 }
 
-// Body template:
-//
-// [Full Changelog]
-//
-// New commits and merged pull requests:
-//
-// - commit_N [#N] (author_N)
-// - ...
-// - commit_2 [#2] (author_2)
-// - commit_1 [#1] (author_1)
 func (rnd *ReleaseNotesData) prepareBody() string {
-	resp := ""
-	if rnd.ChangeLogLink != "" {
-		resp = fmt.Sprintf("[Full Changelog](%s)", rnd.ChangeLogLink)
+	bodyTmpl := template.Must(template.ParseFiles(viper.GetString("template.body")))
+	var releaseBody bytes.Buffer
+	err := bodyTmpl.Execute(&releaseBody, rnd)
+	if err != nil {
+		log.Errorf("Error while body template %s rendering: %v", viper.GetString("template.body"), err)
+		return ""
 	}
-	if rnd.Commits != nil {
-		if resp != "" {
-			resp += "\n\n"
-		}
-		resp += "**New commits and merged pull requests:**\n"
-		for _, v := range rnd.Commits {
-			// log.Debugf("%v", v)
-			commit := v.Message
-			// prLink, err := url.Parse("https://github.com")
-			// if err != nil {
-			// 	log.Errorf("error while PR link creation: %v", err)
-			// } else {
-			// 	prLink.Path = path.Join(prLink.Path, viper.GetString("github.org"))
-			// 	prLink.Path = path.Join(prLink.Path, viper.GetString("github.repo"))
-			// 	prLink.Path = path.Join(prLink.Path, "pull")
-			// 	prLink.Path = path.Join(prLink.Path, strconv.Itoa(v.PullRequest))
-			// 	commit += " [#" + strconv.Itoa(v.PullRequest) + "](" + prLink.String() + ")"
-			// }
-			commit = fmt.Sprintf("%s ([%s](%s))", commit, v.Author, v.URL)
-			resp = fmt.Sprintf("%s\n- %s", resp, commit)
-		}
-	}
-	return resp
+	return releaseBody.String()
 }

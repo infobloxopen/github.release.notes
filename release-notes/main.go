@@ -20,7 +20,8 @@ func main() {
 	logrus.Debugf("github.actor: %v", viper.GetString("github.actor"))
 	logrus.Debugf("github.owner: %v", viper.GetString("github.owner"))
 	logrus.Debugf("github.repository.owner: %v", viper.GetString("github.repository.owner"))
-	logrus.Debugf("github.tag: %v", viper.GetString("github.tag"))
+	logrus.Debugf("template.title: %v", viper.GetString("template.title"))
+	logrus.Debugf("template.body: %v", viper.GetString("template.body"))
 
 	go func() { doneC <- ServeExternal() }()
 
