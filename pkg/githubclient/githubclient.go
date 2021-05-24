@@ -158,18 +158,16 @@ func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesDat
 				}
 				clo.Page = resp.NextPage
 			}
-			if commitsList != nil {
-				for _, i := range commitsList {
-					commitMsg := i.GetCommit().GetMessage()
-					commitMsg = strings.Split(commitMsg, "\n")[0]
-					re := regexp.MustCompile(`\(#\d+\)`)
-					commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
-					commits = append(commits, CommitData{
-						Author:  i.GetAuthor().GetLogin(),
-						Message: commitMsg,
-						URL:     i.GetAuthor().GetURL(),
-					})
-				}
+			for _, i := range commitsList {
+				commitMsg := i.GetCommit().GetMessage()
+				commitMsg = strings.Split(commitMsg, "\n")[0]
+				re := regexp.MustCompile(`\(#\d+\)`)
+				commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
+				commits = append(commits, CommitData{
+					Author:  i.GetAuthor().GetLogin(),
+					Message: commitMsg,
+					URL:     i.GetAuthor().GetURL(),
+				})
 			}
 		}
 		rnd = append(rnd,
