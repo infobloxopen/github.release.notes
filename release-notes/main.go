@@ -29,6 +29,7 @@ func main() {
 	}
 }
 
+// NewLogger sets log level for standart logger
 func NewLogger() *logrus.Logger {
 	logger := logrus.StandardLogger()
 	logrus.SetFormatter(&logrus.JSONFormatter{})

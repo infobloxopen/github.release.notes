@@ -24,12 +24,13 @@ type githubClient struct {
 	client   *github.Client
 }
 
+// GithubClientClient is Github API client
 type GithubClientClient interface {
 	GetReleaseNotesData(tag string) ([]ReleaseNotesData, error)
 	PublishReleaseNotes(rndList []ReleaseNotesData)
 }
 
-// New creates a client wrapper
+// NewGithubClient creates a client wrapper for Github API client
 func NewGithubClient(opt GithubClientOptions) GithubClientClient {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: opt.Token},

@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// ReleaseNotesData is a base struct for release notes
 type ReleaseNotesData struct {
 	Tag           string
 	Branch        string
@@ -15,12 +16,14 @@ type ReleaseNotesData struct {
 	releaseID     int64
 }
 
+// CommitData contains necessary information about commit data
 type CommitData struct {
 	Message string
 	Author  string
 	URL     string
 }
 
+// PrepareReleaseNotesMessage prepares full information about tag or list of tags
 func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
 	releaseTitle := rnd.prepareTitle()
 	releaseBody := rnd.prepareBody()
