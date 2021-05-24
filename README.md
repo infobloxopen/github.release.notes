@@ -33,7 +33,7 @@ Here's the full set of flags for application.
 
 | Flag          | Description                                                         | Required      | Default Value |
 | ------------- | ------------------------------------------------------------------- | ------------- | ------------- |
-| `github.token`| The Githu token for communication with gihub.api                    | Yes           | `""`          |
+| `github.token`| The GitHub Personal Access Token for communication with gihub.api   | Yes           | `""`          |
 | `github.tag`  | Github repository tag                                               | No            | `""`          |
 
 ## Versioning
