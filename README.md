@@ -18,23 +18,18 @@ Give examples
 
 ### Installing
 
-A step-by-step series of examples that tell you have to get a development environment running.
+The following steps will install the `atlas` binary to your `$GOBIN` directory.
 
-Say what the step will be.
-
+```sh
+$ go get github.com/infobloxopen/github.release.notes/release-notes
 ```
-Give the example
+You're all set! Alternatively, you can clone the repository and install the binary manually.
+
+```sh
+$ git clone https://github.com/infobloxopen/github.release.notes.git
+$ cd github.release.notes
+$ make
 ```
-
-And repeat.
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo.
-
-
 
 ## Deployment
 

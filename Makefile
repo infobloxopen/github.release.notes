@@ -16,8 +16,8 @@ IMAGE_REGISTRY          ?= dlahuta
 
 IMAGE_NAME              ?= github.release.notes
 # configuration for server binary and image
-SERVER_BINARY           := $(BUILD_PATH)/server
-SERVER_PATH             := $(PROJECT_ROOT)/cmd/server
+SERVER_BINARY           := $(BUILD_PATH)/release-notes
+SERVER_PATH             := $(PROJECT_ROOT)/release-notes
 SERVER_IMAGE            := $(IMAGE_REGISTRY)/$(IMAGE_NAME)
 SERVER_DOCKERFILE       := $(DOCKERFILE_PATH)/Dockerfile
 
@@ -48,6 +48,9 @@ GIT_COMMIT              ?= $(shell git describe --dirty=-unsupported --always --
 IMAGE_VERSION           ?= $(GIT_COMMIT)-$(USERNAME)
 
 GO_MOD = go.mod
+
+install:
+	@go install	$(SERVER_PATH)
 
 .PHONY all: all-atlas
 all-atlas: vendor-atlas docker-atlas
