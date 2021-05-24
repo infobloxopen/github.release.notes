@@ -10,40 +10,31 @@ One paragraph of project description goes here.
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
-
-What things you need to install the software and how to install them.
-
-```
-Give examples
-```
-
 ### Installing
 
 The following steps will install the `atlas` binary to your `$GOBIN` directory.
 
 ```sh
-$ go get github.com/infobloxopen/github.release.notes/release-notes
+$go get github.com/infobloxopen/github.release.notes/release-notes
+
 ```
+
 You're all set! Alternatively, you can clone the repository and install the binary manually.
 
 ```sh
-$ git clone https://github.com/infobloxopen/github.release.notes.git
-$ cd github.release.notes
-$ make
+$git clone https://github.com/infobloxopen/github.release.notes.git
+$cd github.release.notes
+$make
 ```
 
-## Deployment
+#### Flags
 
-Add additional notes about how to deploy this application. Maybe list some common pitfalls or debugging strategies.
+Here's the full set of flags for application.
 
-## Running the tests
-
-Explain how to run the automated tests for this system.
-
-```
-Give an example
-```
+| Flag          | Description                                                         | Required      | Default Value |
+| ------------- | ------------------------------------------------------------------- | ------------- | ------------- |
+| `github.token`| The Githu token for communication with gihub.api                    | Yes           | `""`          |
+| `github.tag`  | Github repository tag                                               | No            | `""`          |
 
 ## Versioning
 
