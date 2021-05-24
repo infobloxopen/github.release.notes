@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -20,10 +19,8 @@ func main() {
 	logrus.Debugf("github.repository: %v", viper.GetString("github.repository"))
 	logrus.Debugf("github.actor: %v", viper.GetString("github.actor"))
 	logrus.Debugf("github.owner: %v", viper.GetString("github.owner"))
+	logrus.Debugf("github.repository.owner: %v", viper.GetString("github.repository.owner"))
 	logrus.Debugf("github.tag: %v", viper.GetString("github.tag"))
-
-	logrus.Infof("github.owner: %v", os.Getenv("GITHUB_REPOSITORY_OWNER"))
-	logrus.Infof("github.actor2: %v", os.Getenv("GITHUB_ACTOR"))
 
 	go func() { doneC <- ServeExternal() }()
 
@@ -70,6 +67,10 @@ func ServeExternal() error {
 			Repository: repo,
 		},
 	)
+
+	logrus.Debugf("github.owner: %v", viper.GetString("github.owner"))
+	logrus.Debugf("github.owner1: %v", viper.GetString("github.repository.owner"))
+	logrus.Debugf("github.owner2: %v", owner)
 
 	rndList, err := ghClient.GetReleaseNotesData(viper.GetString("github.tag"))
 	if err != nil {
