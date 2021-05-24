@@ -1,5 +1,7 @@
 # github.release.notes
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/infobloxopen/atlas-cli)](https://goreportcard.com/report/github.com/infobloxopen/github.release.notes)
+
 _This generated README.md file loosely follows a [popular template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)._
 
 One paragraph of project description goes here.
