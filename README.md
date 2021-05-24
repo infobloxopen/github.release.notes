@@ -1,5 +1,7 @@
 # github.release.notes
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/infobloxopen/atlas-cli)](https://goreportcard.com/report/github.com/infobloxopen/github.release.notes)
+
 _This generated README.md file loosely follows a [popular template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)._
 
 One paragraph of project description goes here.
@@ -8,45 +10,31 @@ One paragraph of project description goes here.
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
-
-What things you need to install the software and how to install them.
-
-```
-Give examples
-```
-
 ### Installing
 
-A step-by-step series of examples that tell you have to get a development environment running.
+The following steps will install the `release-notes` binary to your `$GOBIN` directory.
 
-Say what the step will be.
-
-```
-Give the example
-```
-
-And repeat.
+```sh
+$go get github.com/infobloxopen/github.release.notes/release-notes
 
 ```
-until finished
+
+You're all set! Alternatively, you can clone the repository and install the binary manually.
+
+```sh
+$git clone https://github.com/infobloxopen/github.release.notes.git
+$cd github.release.notes
+$make
 ```
 
-End with an example of getting some data out of the system or using it for a little demo.
+#### Flags
 
+Here's the full set of flags for application.
 
-
-## Deployment
-
-Add additional notes about how to deploy this application. Maybe list some common pitfalls or debugging strategies.
-
-## Running the tests
-
-Explain how to run the automated tests for this system.
-
-```
-Give an example
-```
+| Flag          | Description                                                         | Required      | Default Value |
+| ------------- | ------------------------------------------------------------------- | ------------- | ------------- |
+| `github.token`| The GitHub Personal Access Token for communication with gihub.api   | Yes           | `""`          |
+| `github.tag`  | Github repository tag                                               | No            | `""`          |
 
 ## Versioning
 
