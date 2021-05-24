@@ -12,6 +12,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	MaxPerPage = 1000
+)
+
 // GithubClientOptions structure holds necessary options for Github Client
 type GithubClientOptions struct {
 	Token      string
@@ -48,17 +52,40 @@ func NewGithubClient(opt GithubClientOptions) GithubClientClient {
 
 // GetReleaseNotesData return release notes data collected
 func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesData, error) {
-	tagsList, _, err := gc.client.Git.ListMatchingRefs(context.Background(), gc.OrgName, gc.RepoName, &github.ReferenceListOptions{Ref: "tags"})
-	if err != nil {
-		return nil, err
+	rlo := &github.ReferenceListOptions{
+		Ref:         "tags",
+		ListOptions: github.ListOptions{PerPage: MaxPerPage},
+	}
+	var tagsList []*github.Reference
+	for {
+		tags, resp, err := gc.client.Git.ListMatchingRefs(context.Background(), gc.OrgName, gc.RepoName, rlo)
+		if err != nil {
+			return nil, err
+		}
+		tagsList = append(tagsList, tags...)
+		if resp.NextPage == 0 {
+			break
+		}
+		rlo.Page = resp.NextPage
 	}
 	if len(tagsList) == 0 {
 		return nil, fmt.Errorf("no tags were found")
 	}
-	releases, _, err := gc.client.Repositories.ListReleases(context.Background(), gc.OrgName, gc.RepoName, nil)
-	if err != nil {
-		return nil, err
+
+	lo := &github.ListOptions{PerPage: MaxPerPage}
+	var releases []*github.RepositoryRelease
+	for {
+		rls, resp, err := gc.client.Repositories.ListReleases(context.Background(), gc.OrgName, gc.RepoName, lo)
+		if err != nil {
+			return nil, err
+		}
+		releases = append(releases, rls...)
+		if resp.NextPage == 0 {
+			break
+		}
+		lo.Page = resp.NextPage
 	}
+
 	var rnd []ReleaseNotesData
 	for i, tag := range tagsList {
 		if tag.GetObject().GetType() != "tag" {
@@ -114,24 +141,34 @@ func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesDat
 				}
 			}
 		} else {
-			commitsList, _, err := gc.client.Repositories.ListCommits(context.Background(),
-				gc.OrgName, gc.RepoName, &github.CommitsListOptions{
-					SHA: tagData.GetObject().GetSHA(),
-				})
-			if err != nil {
-				log.Errorf("Error getting commits for the tag %v: %v", tagData.GetTag(), err)
-			} else {
-				for _, i := range commitsList {
-					commitMsg := i.GetCommit().GetMessage()
-					commitMsg = strings.Split(commitMsg, "\n")[0]
-					re := regexp.MustCompile(`\(#\d+\)`)
-					commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
-					commits = append(commits, CommitData{
-						Author:  i.GetAuthor().GetLogin(),
-						Message: commitMsg,
-						URL:     i.GetAuthor().GetURL(),
-					})
+			clo := &github.CommitsListOptions{
+				SHA:         tagData.GetObject().GetSHA(),
+				ListOptions: github.ListOptions{PerPage: MaxPerPage},
+			}
+			var commitsList []*github.RepositoryCommit
+			for {
+				comtsLst, resp, err := gc.client.Repositories.ListCommits(context.Background(), gc.OrgName, gc.RepoName, clo)
+				if err != nil {
+					log.Errorf("Error getting commits for the tag %v: %v", tagData.GetTag(), err)
+					commitsList = nil
+					break
 				}
+				commitsList = append(commitsList, comtsLst...)
+				if resp.NextPage == 0 {
+					break
+				}
+				clo.Page = resp.NextPage
+			}
+			for _, i := range commitsList {
+				commitMsg := i.GetCommit().GetMessage()
+				commitMsg = strings.Split(commitMsg, "\n")[0]
+				re := regexp.MustCompile(`\(#\d+\)`)
+				commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
+				commits = append(commits, CommitData{
+					Author:  i.GetAuthor().GetLogin(),
+					Message: commitMsg,
+					URL:     i.GetAuthor().GetURL(),
+				})
 			}
 		}
 		rnd = append(rnd,
