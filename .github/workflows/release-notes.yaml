@@ -13,7 +13,7 @@ jobs:
         run: |
           echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@v1.0.7
+        uses: infobloxopen/github.release.notes@v1.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.vars.outputs.tag }}
