@@ -2,8 +2,6 @@ name: release-notes
 on:
   push:
     tags: ['v*']
-  create:
-    tags: ['v*']
   workflow_dispatch:
 jobs:
   release-notes:
@@ -15,7 +13,7 @@ jobs:
         run: |
           echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@v1.0.5
+        uses: infobloxopen/github.release.notes@v1.0.6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.vars.outputs.tag }}
