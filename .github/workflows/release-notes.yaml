@@ -2,6 +2,8 @@ name: release-notes
 on:
   push:
     tags: ['v*']
+  create:
+    tags: ['v*']
   workflow_dispatch:
 jobs:
   release-notes:
@@ -12,11 +14,8 @@ jobs:
         id: vars        
         run: |
           echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-          echo ::set-output name=org::${{ github.repository }} | awk '{split($0,env,"/"); print env[1]}'
       - name: Run release.notes image
-        uses: infobloxopen/github.release.notes@v1.0.4
+        uses: infobloxopen/github.release.notes@v1.0.5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.vars.outputs.tag }}
-          github-repo: ${{ github.event.repository.name }}
-          github-org: ${{ steps.vars.outputs.org }}

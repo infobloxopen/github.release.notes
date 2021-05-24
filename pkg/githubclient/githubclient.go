@@ -12,11 +12,16 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// GithubClientOptions structure holds necessary options for Github Client
+type GithubClientOptions struct {
+	Token      string
+	Owner      string
+	Repository string
+}
 type githubClient struct {
-	GithubToken string
-	OrgName     string
-	RepoName    string
-	client      *github.Client
+	OrgName  string
+	RepoName string
+	client   *github.Client
 }
 
 type GithubClientClient interface {
@@ -25,17 +30,17 @@ type GithubClientClient interface {
 }
 
 // New creates a client wrapper
-func NewGithubClient(token, org, repo string) GithubClientClient {
+func NewGithubClient(opt GithubClientOptions) GithubClientClient {
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: opt.Token},
 	)
 	tc := oauth2.NewClient(context.Background(), ts)
 
 	client := github.NewClient(tc)
 
 	return &githubClient{
-		OrgName:  org,
-		RepoName: repo,
+		OrgName:  opt.Owner,
+		RepoName: opt.Repository,
 		client:   client,
 	}
 }

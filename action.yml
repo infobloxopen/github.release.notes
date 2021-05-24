@@ -5,28 +5,12 @@ inputs:
   github-token:  
     description: 'A gitHub personal access token used to commit'
     required: true
-  github-repo:  
-    description: 'The repository name'
-    required: false
-  github-org:
-    description: 'Github organization name'
-    required: false
-  github-user:
-    description: 'Github user name'
-    required: false
   github-tag:
     description: 'Github repository tag'
     required: false
-  branch:
-    description: 'The branch name'
-    required: false
-    default: 'main'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - --github.token=${{ inputs.github-token }}
-    - --github.org=${{ inputs.github-org }}
-    - --github.repo=${{ inputs.github-repo }}
-    - --github.user=$GITHUB_ACTOR
     - --github.tag=${{ inputs.github-tag }}
