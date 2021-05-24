@@ -16,9 +16,10 @@ func main() {
 	logger := NewLogger()
 
 	logrus.Debugf("update.exist: %v", viper.GetString("update.exist"))
-	logrus.Debugf("github.repo: %v", viper.GetString("github.repo"))
-	logrus.Debugf("github.user: %v", viper.GetString("github.user"))
-	logrus.Debugf("github.org: %v", viper.GetString("github.org"))
+	logrus.Debugf("github.repository: %v", viper.GetString("github.repository"))
+	logrus.Debugf("github.actor: %v", viper.GetString("github.actor"))
+	logrus.Debugf("github.owner: %v", viper.GetString("github.owner"))
+	logrus.Debugf("github.repository.owner: %v", viper.GetString("github.repository.owner"))
 	logrus.Debugf("github.tag: %v", viper.GetString("github.tag"))
 
 	go func() { doneC <- ServeExternal() }()
@@ -46,7 +47,30 @@ func NewLogger() *logrus.Logger {
 
 // ServeExternal builds and runs the server that listens on ServerAddress and GatewayAddress
 func ServeExternal() error {
-	ghClient := gh.NewGithubClient(viper.GetString("github.token"), viper.GetString("github.org"), viper.GetString("github.repo"))
+	repo := viper.GetString("github.repository")
+	// check if repo variable contains owner and repository name
+	repoSlice := strings.Split(repo, "/")
+	if len(repoSlice) > 1 {
+		repo = repoSlice[1]
+		logrus.Infof("Repository variable is overridden because of the variable contains owner name")
+	}
+
+	owner := viper.GetString("github.owner")
+	if owner == "" {
+		owner = viper.GetString("github.repository.owner")
+	}
+
+	ghClient := gh.NewGithubClient(
+		gh.GithubClientOptions{
+			Token:      viper.GetString("github.token"),
+			Owner:      owner,
+			Repository: repo,
+		},
+	)
+
+	logrus.Debugf("github.owner: %v", viper.GetString("github.owner"))
+	logrus.Debugf("github.owner1: %v", viper.GetString("github.repository.owner"))
+	logrus.Debugf("github.owner2: %v", owner)
 
 	rndList, err := ghClient.GetReleaseNotesData(viper.GetString("github.tag"))
 	if err != nil {
