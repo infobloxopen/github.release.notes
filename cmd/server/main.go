@@ -22,7 +22,7 @@ func main() {
 	logrus.Debugf("github.owner: %v", viper.GetString("github.owner"))
 	logrus.Debugf("github.tag: %v", viper.GetString("github.tag"))
 
-	logrus.Infof("github.tag2: %v", os.Getenv("GITHUB_REPOSITORY_OWNER"))
+	logrus.Infof("github.owner: %v", os.Getenv("GITHUB_REPOSITORY_OWNER"))
 	logrus.Infof("github.actor2: %v", os.Getenv("GITHUB_ACTOR"))
 
 	go func() { doneC <- ServeExternal() }()
@@ -50,10 +50,11 @@ func NewLogger() *logrus.Logger {
 
 // ServeExternal builds and runs the server that listens on ServerAddress and GatewayAddress
 func ServeExternal() error {
+	repo := viper.GetString("github.repository")
 	// check if repo variable contains owner and repository name
-	slice := strings.Split(viper.GetString("github.repository"), "/")
-	if len(slice) > 1 {
-		viper.Set("github.repository", slice[1])
+	repoSlice := strings.Split(repo, "/")
+	if len(repoSlice) > 1 {
+		repo = repoSlice[1]
 		logrus.Infof("Repository variable is overridden because of the variable contains owner name")
 	}
 
@@ -66,7 +67,7 @@ func ServeExternal() error {
 		gh.GithubClientOptions{
 			Token:      viper.GetString("github.token"),
 			Owner:      owner,
-			Repository: viper.GetString("github.repository"),
+			Repository: repo,
 		},
 	)
 

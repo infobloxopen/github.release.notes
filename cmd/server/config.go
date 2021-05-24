@@ -14,7 +14,7 @@ const (
 	// github
 	defaulGithubToken      = ""
 	defaulGithubOwner      = ""
-	defaulGithubRepository = "infoblox/github.release.notes"
+	defaulGithubRepository = ""
 	defaulGithubActor      = ""
 	defaulGithubTag        = ""
 )
