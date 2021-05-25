@@ -8,9 +8,19 @@ inputs:
   github-tag:
     description: 'Github repository tag'
     required: false
+  template-title:
+    description: 'Template for release notes title'
+    default: 'defaultTitle.tmpl'
+    required: false
+  template-body:
+    description: 'Template for release notes body'
+    default: 'defaultTitle.tmpl'
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - --github.token=${{ inputs.github-token }}
     - --github.tag=${{ inputs.github-tag }}
+    - --template.title=/github/workspace/${{ inputs.template-title }}
+    - --template.body=/github/workspace/${{ inputs.template-body }}
