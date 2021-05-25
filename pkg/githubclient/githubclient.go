@@ -201,7 +201,17 @@ func repl(str string) string {
 
 func generateCommitData(repoCommit *github.RepositoryCommit) CommitData {
 	commitMsg := repoCommit.GetCommit().GetMessage()
-	commitMsg = strings.Split(commitMsg, "\n")[0]
+	commitMsgSplit := strings.Split(commitMsg, "\n")
+	commitMsg = strings.TrimSpace(commitMsgSplit[0])
+	var squashCommits []string
+	for i, sc := range commitMsgSplit {
+		if i == 0 {
+			continue
+		}
+		if sc != "" && len(sc) > 1 {
+			squashCommits = append([]string{strings.TrimSpace(sc)}, squashCommits...)
+		}
+	}
 	re := regexp.MustCompile(`\(#\d+\)`)
 	commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
 	commitPR := ""
@@ -231,5 +241,6 @@ func generateCommitData(repoCommit *github.RepositoryCommit) CommitData {
 		CommitMessage:   commitMsg,
 		CommitPR:        commitPR,
 		CommitURL:       repoCommit.GetHTMLURL(),
+		SquashCommits:   squashCommits,
 	}
 }
