@@ -17,6 +17,9 @@ const (
 	defaulGithubRepository = ""
 	defaulGithubActor      = ""
 	defaulGithubTag        = ""
+
+	defaultTemplateTitle = "defaultTitle.tmpl"
+	defaultTemplateBody  = "defaultBody.tmpl"
 )
 
 var (
@@ -31,4 +34,7 @@ var (
 	_ = pflag.String("github.repository", defaulGithubRepository, "github repository name")
 	_ = pflag.String("github.actor", defaulGithubActor, "github user name")
 	_ = pflag.String("github.tag", defaulGithubTag, "github repository tag")
+
+	_ = pflag.String("template.title", defaultTemplateTitle, "default template for release notes' title")
+	_ = pflag.String("template.body", defaultTemplateBody, "default template for release notes' body")
 )

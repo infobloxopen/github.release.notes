@@ -125,18 +125,9 @@ func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesDat
 					gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
 				tagCompare, _, _ := gc.client.Repositories.CompareCommits(context.Background(), gc.OrgName, gc.RepoName, previousTag.GetTag(), tagData.GetTag())
 				if tagCompare != nil {
-					for _, i := range tagCompare.Commits {
-						commitMsg := i.GetCommit().GetMessage()
-						commitMsg = strings.Split(commitMsg, "\n")[0]
-						re := regexp.MustCompile(`\(#\d+\)`)
-						commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
-						commits = append([]CommitData{
-							{
-								Author:  i.GetAuthor().GetLogin(),
-								Message: commitMsg,
-								URL:     i.GetAuthor().GetURL(),
-							},
-						}, commits...)
+					for _, commit := range tagCompare.Commits {
+						commitData := generateCommitData(commit)
+						commits = append([]CommitData{commitData}, commits...)
 					}
 				}
 			}
@@ -147,34 +138,28 @@ func (gc *githubClient) GetReleaseNotesData(githubTag string) ([]ReleaseNotesDat
 			}
 			var commitsList []*github.RepositoryCommit
 			for {
-				comtsLst, resp, err := gc.client.Repositories.ListCommits(context.Background(), gc.OrgName, gc.RepoName, clo)
+				commitsListPage, resp, err := gc.client.Repositories.ListCommits(context.Background(), gc.OrgName, gc.RepoName, clo)
 				if err != nil {
 					log.Errorf("Error getting commits for the tag %v: %v", tagData.GetTag(), err)
 					commitsList = nil
 					break
 				}
-				commitsList = append(commitsList, comtsLst...)
+				commitsList = append(commitsList, commitsListPage...)
 				if resp.NextPage == 0 {
 					break
 				}
 				clo.Page = resp.NextPage
 			}
-			for _, i := range commitsList {
-				commitMsg := i.GetCommit().GetMessage()
-				commitMsg = strings.Split(commitMsg, "\n")[0]
-				re := regexp.MustCompile(`\(#\d+\)`)
-				commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
-				commits = append(commits, CommitData{
-					Author:  i.GetAuthor().GetLogin(),
-					Message: commitMsg,
-					URL:     i.GetAuthor().GetURL(),
-				})
+			for _, commit := range commitsList {
+				commitData := generateCommitData(commit)
+				commits = append([]CommitData{commitData}, commits...)
 			}
 		}
 		rnd = append(rnd,
-			ReleaseNotesData{Tag: tagData.GetTag(),
-				Comment:       tagData.GetMessage(),
-				Date:          tagData.GetTagger().GetDate(),
+			ReleaseNotesData{
+				Tag:           tagData.GetTag(),
+				TagComment:    strings.Split(tagData.GetMessage(), "\n")[0],
+				TagDate:       tagData.GetTagger().GetDate().Format("Jan 02, 2006"),
 				ChangeLogLink: changeLogLink,
 				Commits:       commits,
 				releaseID:     releaseID,
@@ -212,4 +197,37 @@ func (gc *githubClient) PublishReleaseNotes(rndList []ReleaseNotesData) {
 
 func repl(str string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(str, ")", ""), "(", "")
+}
+
+func generateCommitData(repoCommit *github.RepositoryCommit) CommitData {
+	commitMsg := repoCommit.GetCommit().GetMessage()
+	commitMsg = strings.Split(commitMsg, "\n")[0]
+	re := regexp.MustCompile(`\(#\d+\)`)
+	commitMsg = re.ReplaceAllStringFunc(commitMsg, repl)
+	commitPR := ""
+	re = regexp.MustCompile(`#\d+$`)
+	match := re.FindStringSubmatch(commitMsg)
+	if len(match) == 1 {
+		commitPR = match[0]
+		commitMsg = commitMsg[:strings.LastIndex(commitMsg, "#")-1]
+	} else {
+		re := regexp.MustCompile(`#\d+`)
+		match := re.FindStringSubmatch(commitMsg)
+		if len(match) == 1 {
+			commitPR = match[0]
+			split := re.Split(commitMsg, -1)
+			for i := 0; i < len(split); i++ {
+				split[i] = strings.TrimSpace(split[i])
+			}
+			commitMsg = strings.Join(split, " ")
+		}
+	}
+	return CommitData{
+		CommitAuthor:    repoCommit.GetAuthor().GetLogin(),
+		CommitAuthorURL: repoCommit.GetAuthor().GetURL(),
+		CommitDate:      repoCommit.GetCommit().GetAuthor().GetDate().Format("Jan 02, 2006"),
+		CommitMessage:   commitMsg,
+		CommitPR:        commitPR,
+		CommitURL:       repoCommit.GetHTMLURL(),
+	}
 }
