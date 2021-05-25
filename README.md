@@ -4,9 +4,68 @@
 
 ## Getting Started
 
-These instructions will get you a copy of Release-notes command-line tool up and running on your local machine.
+These instructions will get you a copy of Release-notes command-line tool up and running on your local machine or as a github actions
 
-### Installing
+## Usage
+
+You can use github.release.notes package to publish release notes.
+
+- [Release Notes Via Github Actions](#Github-Actions-Usage)
+- [Release Notes Via Mannual Running](#Local-Usage)
+
+## Github Actions Usage
+
+See [action.yml](action.yml)
+
+Basic:
+
+```yaml
+name: release-notes
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        id: vars        
+        run: |
+          echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Run release.notes image
+        uses: infobloxopen/github.release.notes@v1.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${{ steps.vars.outputs.tag }}
+```
+
+With Release Notes Template:
+
+```yaml
+name: release-notes
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set env
+        id: vars        
+        run: |
+          echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Run release.notes image
+        uses: infobloxopen/github.release.notes@v1.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${{ steps.vars.outputs.tag }}
+```
+
+### Local Usage
 
 The following steps will install the `release-notes` binary to your `$GOBIN` directory.
 
@@ -23,6 +82,15 @@ cd github.release.notes
 make
 ```
 
+After installing please use the following command:
+
+```sh
+release-notes --github.token=<GITHUB_PAT> \
+              --github.repository=<GITHUB_REPOSITORY_NAME> \
+              --github.owner=<GITHUB_REPOSITORY_OWNER> \
+              --github.actor=<GITHUB_USER>
+```
+
 #### Flags
 
 Here's the full set of flags for application.
@@ -34,4 +102,4 @@ Here's the full set of flags for application.
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/infobloxopen/atlas-cli/github.release.notes/tags).
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/infobloxopen/github.release.notes/tags).
