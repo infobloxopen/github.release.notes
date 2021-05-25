@@ -63,6 +63,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.vars.outputs.tag }}
+          template-title: templates/defaultTitle.tmpl
+          template-body: templates/defaultBody.tmpl
 ```
 
 ### Local Usage
