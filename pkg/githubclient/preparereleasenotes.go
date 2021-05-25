@@ -22,9 +22,11 @@ type ReleaseNotesData struct {
 
 // CommitData contains necessary information about commit data
 type CommitData struct {
+	CommitAdditions int
 	CommitAuthor    string
 	CommitAuthorURL string
 	CommitDate      string
+	CommitDeletions int
 	CommitMessage   string
 	CommitPR        string
 	CommitURL       string

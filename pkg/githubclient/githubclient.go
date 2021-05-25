@@ -223,9 +223,11 @@ func generateCommitData(repoCommit *github.RepositoryCommit) CommitData {
 		}
 	}
 	return CommitData{
+		CommitAdditions: repoCommit.GetStats().GetAdditions(),
 		CommitAuthor:    repoCommit.GetAuthor().GetLogin(),
-		CommitAuthorURL: repoCommit.GetAuthor().GetURL(),
+		CommitAuthorURL: repoCommit.GetAuthor().GetHTMLURL(),
 		CommitDate:      repoCommit.GetCommit().GetAuthor().GetDate().Format("Jan 02, 2006"),
+		CommitDeletions: repoCommit.GetStats().GetDeletions(),
 		CommitMessage:   commitMsg,
 		CommitPR:        commitPR,
 		CommitURL:       repoCommit.GetHTMLURL(),
