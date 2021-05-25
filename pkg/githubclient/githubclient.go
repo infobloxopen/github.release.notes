@@ -210,6 +210,17 @@ func generateCommitData(repoCommit *github.RepositoryCommit) CommitData {
 	if len(match) == 1 {
 		commitPR = match[0]
 		commitMsg = commitMsg[:strings.LastIndex(commitMsg, "#")-1]
+	} else {
+		re := regexp.MustCompile(`#\d+`)
+		match := re.FindStringSubmatch(commitMsg)
+		if len(match) == 1 {
+			commitPR = match[0]
+			split := re.Split(commitMsg, -1)
+			for i := 0; i < len(split); i++ {
+				split[i] = strings.TrimSpace(split[i])
+			}
+			commitMsg = strings.Join(split, " ")
+		}
 	}
 	return CommitData{
 		CommitAuthor:    repoCommit.GetAuthor().GetLogin(),
