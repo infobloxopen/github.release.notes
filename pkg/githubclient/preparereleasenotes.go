@@ -2,6 +2,7 @@ package githubclient
 
 import (
 	"bytes"
+	"os"
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
@@ -38,22 +39,38 @@ func (rnd *ReleaseNotesData) PrepareReleaseNotesMessage() (string, string) {
 }
 
 func (rnd *ReleaseNotesData) prepareTitle() string {
-	titleTmpl := template.Must(template.ParseFiles(viper.GetString("template.title")))
-	var title bytes.Buffer
-	err := titleTmpl.Execute(&title, rnd)
+	var titleTmpl *template.Template
+	_, err := os.Stat(viper.GetString("template.title"))
 	if err != nil {
-		log.Errorf("Error while title template %s rendering: %v", viper.GetString("template.title"), err)
+		log.Errorf("Error with template title %s: %v. Will use default \"in memory\" template.",
+			viper.GetString("template.title"), err)
+		titleTmpl = template.Must(template.New("title").Parse(defaultTitle))
+	} else {
+		titleTmpl = template.Must(template.ParseFiles(viper.GetString("template.title")))
+	}
+	var title bytes.Buffer
+	err = titleTmpl.Execute(&title, rnd)
+	if err != nil {
+		log.Errorf("Error while title template rendering: %v", err)
 		return ""
 	}
 	return title.String()
 }
 
 func (rnd *ReleaseNotesData) prepareBody() string {
-	bodyTmpl := template.Must(template.ParseFiles(viper.GetString("template.body")))
-	var releaseBody bytes.Buffer
-	err := bodyTmpl.Execute(&releaseBody, rnd)
+	var bodyTmpl *template.Template
+	_, err := os.Stat(viper.GetString("template.body"))
 	if err != nil {
-		log.Errorf("Error while body template %s rendering: %v", viper.GetString("template.body"), err)
+		log.Errorf("Error with template body %s: %v. Will use default \"in memory\" template.",
+			viper.GetString("template.body"), err)
+		bodyTmpl = template.Must(template.New("body").Parse(defaultBody))
+	} else {
+		bodyTmpl = template.Must(template.ParseFiles(viper.GetString("template.body")))
+	}
+	var releaseBody bytes.Buffer
+	err = bodyTmpl.Execute(&releaseBody, rnd)
+	if err != nil {
+		log.Errorf("Error while body template rendering: %v", err)
 		return ""
 	}
 	return releaseBody.String()
