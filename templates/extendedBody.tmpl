@@ -1,0 +1,14 @@
+{{if .ChangeLogLink -}}
+[Full Changelog]({{.ChangeLogLink}})
+
+{{end -}}
+**New commits and merged pull requests:**
+{{range .Commits}}
+- {{.CommitMessage}}
+{{- if .CommitPR}} {{.CommitPR}} {{end}}
+{{- if and (not .CommitPR) .CommitURL}} [[link]({{.CommitURL}})] {{end -}}
+([{{.CommitAuthor}}]({{.CommitAuthorURL}})) {{.CommitDate}}
+{{range .SquashCommits}}
+  {{.}}
+{{end}}
+{{- end}}

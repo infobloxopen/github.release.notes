@@ -242,6 +242,7 @@ Here's the full set of values you may use in templates:
   - CommitMessage     - comment message of the commit
   - CommitPR          - pull request related to the commit (if exists)
   - CommitURL         - HTML URL of the commit (may be used if no PR related to the commit)
+  - SquashCommits     - list of commits that were squashed into current commit
 ```
 
 [Back to content](#Content)

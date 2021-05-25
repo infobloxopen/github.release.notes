@@ -30,6 +30,7 @@ type CommitData struct {
 	CommitMessage   string
 	CommitPR        string
 	CommitURL       string
+	SquashCommits   []string
 }
 
 // PrepareReleaseNotesMessage prepares full information about tag or list of tags
