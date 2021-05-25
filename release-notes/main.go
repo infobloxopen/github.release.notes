@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	doneC := make(chan error)
 	logger := NewLogger()
 
 	logrus.Debugf("update.exist: %v", viper.GetString("update.exist"))
@@ -24,9 +23,9 @@ func main() {
 	logrus.Debugf("template.title: %v", viper.GetString("template.title"))
 	logrus.Debugf("template.body: %v", viper.GetString("template.body"))
 
-	go func() { doneC <- ServeExternal() }()
+	err := publishNotes()
 
-	if err := <-doneC; err != nil {
+	if err != nil {
 		logger.Fatal(err)
 	}
 }
@@ -48,8 +47,8 @@ func NewLogger() *logrus.Logger {
 	return logger
 }
 
-// ServeExternal builds and runs the server that listens on ServerAddress and GatewayAddress
-func ServeExternal() error {
+// publishNotes builds and runs the server that listens on ServerAddress and GatewayAddress
+func publishNotes() error {
 	repo := viper.GetString("github.repository")
 	// check if repo variable contains owner and repository name
 	repoSlice := strings.Split(repo, "/")
